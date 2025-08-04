@@ -8,6 +8,8 @@ import authRoutes from './auth/routes/auth.routes.js';
 import chatRoutes from './chat/routes/chat.routes.js';
 import { searchRoutes } from './chat/routes/search.routes.js';
 import toolRoutes from './tool/routes/tool.routes.js';
+import adminRoutes from './admin/routes/admin.routes.js';
+import { adminService } from './admin/services/admin.service.js';
 import 'reflect-metadata';
 
 /**
@@ -32,6 +34,18 @@ export class StellaApp {
   private initializeMiddleware(): void {
     this.app.use(express.json({ limit: '10mb' }));
     this.app.use(express.urlencoded({ extended: true }));
+    
+    // Serve static files
+    this.app.use(express.static('public'));
+    
+    // Admin dashboard route
+    this.app.get('/admin', (req, res) => {
+      res.redirect('/admin/');
+    });
+    
+    this.app.get('/admin/', (req, res) => {
+      res.sendFile('admin/index.html', { root: 'public' });
+    });
 
     // CORS middleware
     this.app.use((req, res, next) => {
@@ -46,9 +60,46 @@ export class StellaApp {
       }
     });
 
-    // Request logging middleware
+    // Request logging and analytics middleware
     this.app.use((req, res, next) => {
       console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
+      
+      const startTime = Date.now();
+      
+      // Track API requests for analytics
+      if (req.path.startsWith('/api/')) {
+        adminService.trackRequest(req.path);
+      }
+      
+      // Track response for error analytics and performance
+      const originalSend = res.send;
+      res.send = function(data) {
+        const responseTime = Date.now() - startTime;
+        
+        // Track performance for all API requests
+        if (req.path.startsWith('/api/')) {
+          adminService.trackRequestPerformance(req.path, responseTime);
+        }
+        
+        // Track errors
+        if (res.statusCode >= 400 && req.path.startsWith('/api/')) {
+          adminService.trackError(req.path, data || 'Unknown error', res.statusCode);
+          
+          // Track security events for failed authentication
+          if (res.statusCode === 401 || res.statusCode === 403) {
+            adminService.addSecurityEvent({
+              type: 'failed_login',
+              email: req.body?.email || 'unknown',
+              ipAddress: req.ip || req.connection.remoteAddress || 'unknown',
+              userAgent: req.get('User-Agent') || 'unknown',
+              details: `${res.statusCode} error on ${req.path}`
+            });
+          }
+        }
+        
+        return originalSend.call(this, data);
+      };
+      
       next();
     });
   }
@@ -157,6 +208,9 @@ export class StellaApp {
 
     // Tool routes
     this.app.use('/api/tool', toolRoutes);
+
+    // Admin routes
+    this.app.use('/api/admin', adminRoutes);
 
     // TODO: Add document and vector routes here
     // this.app.use('/api/documents', documentRoutes);

@@ -111,8 +111,14 @@ export class SearchService {
       console.log(`   🎯 Final results (latest first): ${finalResults.length}`);
       
       if (finalResults.length > 0) {
-        console.log(`   📅 Date range: ${new Date(finalResults[0].created_at).toLocaleDateString()} to ${new Date(finalResults[finalResults.length - 1].created_at).toLocaleDateString()}`);
-        console.log(`   📊 Score range: ${finalResults[0].score.toFixed(3)} to ${finalResults[finalResults.length - 1].score.toFixed(3)}`);
+        const firstResult = finalResults[0];
+        const lastResult = finalResults[finalResults.length - 1];
+        if (firstResult?.created_at && lastResult?.created_at) {
+          console.log(`   📅 Date range: ${new Date(firstResult.created_at).toLocaleDateString()} to ${new Date(lastResult.created_at).toLocaleDateString()}`);
+        }
+        if (firstResult?.score !== undefined && lastResult?.score !== undefined) {
+          console.log(`   📊 Score range: ${firstResult.score.toFixed(3)} to ${lastResult.score.toFixed(3)}`);
+        }
       }
 
       console.log(`✅ Found ${finalResults.length} relevant conversations in ${searchTime}ms`);
