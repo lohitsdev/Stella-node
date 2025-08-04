@@ -1,0 +1,55 @@
+{
+  "name": "stella",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "nodemon --exec \"node --import tsx src/index.ts\"",
+    "dev:api": "nodemon --exec \"node --import tsx src/scripts/start-api.ts\"",
+    "start": "node dist/index.js",
+    "start:api": "node dist/scripts/start-api.js",
+    "lint": "echo \"Add linting here\"",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "swagger": "node -e \"console.log('Swagger docs available at: http://localhost:3000/api-docs')\"",
+    "setup": "cp .env.example .env && echo 'Please configure your .env file with actual values'"
+  },
+  "keywords": [
+    "nodejs",
+    "typescript",
+    "mongodb",
+    "pinecone",
+    "vector-search",
+    "ai"
+  ],
+  "author": "",
+  "license": "ISC",
+  "description": "A modern Node.js application with TypeScript, MongoDB, and Pinecone for vector search capabilities",
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/express": "^5.0.3",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^24.1.0",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
+    "nodemon": "^3.1.10",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.20.3",
+    "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@pinecone-database/pinecone": "^6.1.2",
+    "bcryptjs": "^3.0.2",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.2",
+    "dotenv": "^17.2.1",
+    "express": "^5.1.0",
+    "hume": "^0.12.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongodb": "^6.18.0",
+    "openai": "^5.11.0",
+    "reflect-metadata": "^0.2.2",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
+  }
+}
