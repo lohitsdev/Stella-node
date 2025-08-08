@@ -81,6 +81,19 @@ export class ChatController {
         readable_time: new Date(webhookData.timestamp * 1000).toISOString()
       });
 
+      // Validate chat_id - reject 'unknown' or invalid UUIDs
+      if (!webhookData.chat_id || 
+          webhookData.chat_id === 'unknown' || 
+          webhookData.chat_id.length < 10) {
+        console.warn(`❌ Rejecting webhook with invalid chat_id: "${webhookData.chat_id}"`);
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          error: 'Invalid chat_id provided',
+          timestamp: new Date()
+        });
+        return;
+      }
+
       const result = await chatService.processEndWebhook(webhookData);
 
       if (!result.success) {
@@ -153,6 +166,91 @@ export class ChatController {
       });
     } catch (error) {
       console.error('Get user sessions error:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'Internal server error',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
+   * @swagger
+   * /api/chat/chatids/{email}:
+   *   get:
+   *     summary: Get only chat IDs for a user (lightweight)
+   *     tags: [Chat]
+   *     parameters:
+   *       - in: path
+   *         name: email
+   *         required: true
+   *         schema:
+   *           type: string
+   *           format: email
+   *         description: User email
+   *     responses:
+   *       200:
+   *         description: Chat IDs retrieved successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 success:
+   *                   type: boolean
+   *                 data:
+   *                   type: object
+   *                   properties:
+   *                     chats:
+   *                       type: array
+   *                       items:
+   *                         type: object
+   *                         properties:
+   *                           chat_id:
+   *                             type: string
+   *                           created_at:
+   *                             type: string
+   *                             format: date-time
+   *                           started_at:
+   *                             type: string
+   *                             format: date-time
+   *                     count:
+   *                       type: integer
+   *                 message:
+   *                   type: string
+   *                 timestamp:
+   *                   type: string
+   *       400:
+   *         description: Validation error
+   *       500:
+   *         description: Internal server error
+   */
+  async getUserChatIds(req: Request, res: Response): Promise<void> {
+    try {
+      const { email } = req.params;
+
+      if (!email) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          error: 'Email parameter is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      const chatData = await chatService.getUserChatIdsWithTimestamps(email);
+
+      res.status(HttpStatus.OK).json({
+        success: true,
+        data: {
+          chats: chatData,
+          count: chatData.length
+        },
+        message: 'Chat IDs with timestamps retrieved successfully',
+        timestamp: new Date()
+      });
+    } catch (error) {
+      console.error('Get user chat IDs error:', error);
       res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
         success: false,
         error: 'Internal server error',

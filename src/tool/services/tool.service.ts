@@ -18,7 +18,7 @@ export class ToolService implements IToolService {
       console.log(`🔧 Processing tool query for: ${queryData.email}`);
       console.log(`📝 Query: "${queryData.query}"`);
 
-      // 🚀 IMMEDIATE PINECONE SEARCH - HIGH SPEED PROCESSING
+      // Regular query processing
       console.log(`⚡ SEARCHING PINECONE for user: ${queryData.email}`);
       
       // Search user's conversations (latest first)

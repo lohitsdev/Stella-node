@@ -17,6 +17,7 @@ router.get('/session/:chatId/public', chatController.getSession.bind(chatControl
 
 // Protected routes (require authentication)
 router.get('/sessions/:email', authMiddleware, chatController.getUserSessions.bind(chatController));
+router.get('/chatids/:email', chatController.getUserChatIds.bind(chatController));
 router.get('/session/:chatId', authMiddleware, chatController.getSession.bind(chatController));
 
 // Summary routes

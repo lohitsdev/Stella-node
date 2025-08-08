@@ -210,23 +210,45 @@ export class SummaryService implements ISummaryService {
       // Use namespace from config
       const namespace = index.namespace('conversation-namespace');
       
-      // Create vector data with metadata (filter out null values for Pinecone)
-      // summaryText is already a string from the embedding generation above
+      // Parse enhanced summary data
+      let enhancedData: any = {};
+      try {
+        enhancedData = typeof summary.summary === 'string' ? JSON.parse(summary.summary) : summary.summary;
+      } catch (e) {
+        enhancedData = { summary: summary.summary };
+      }
+
+      // Create enhanced metadata with emotion and topic data
       const metadata: any = {
         type: 'conversation_summary',
         chat_id: summary.chat_id,
         email: email,
-        summary_text: summaryText, // Already guaranteed to be a string
-          total_events: summary.metadata.total_events,
-          emotions_count: summary.metadata.hume_emotions_count,
-          created_at: summary.createdAt.toISOString(),
-          updated_at: summary.updatedAt.toISOString()
-        };
+        summary_text: enhancedData.summary || summaryText,
+        total_events: summary.metadata.total_events,
+        emotions_count: summary.metadata.hume_emotions_count,
+        created_at: summary.createdAt.toISOString(),
+        updated_at: summary.updatedAt.toISOString(),
+        
+        // Enhanced fields from new summary structure
+        emotional_context: enhancedData.emotional_context || 'neutral',
+        dominant_emotion: enhancedData.dominant_emotion || 'neutral',
+        conversation_mood: enhancedData.conversation_mood || 'neutral',
+        has_questions: enhancedData.has_questions || false,
+        has_personal_info: enhancedData.has_personal_info || false,
+        conversation_length: enhancedData.conversation_length || 'short',
+        
+        // Store topics and personal facts as strings (Pinecone limitation)
+        topics: Array.isArray(enhancedData.topics) ? enhancedData.topics.join(',') : '',
+        personal_facts: Array.isArray(enhancedData.personal_facts) ? enhancedData.personal_facts.join(',') : '',
+        
+        // Calculate conversation score for better ranking
+        relevance_score: this.calculateRelevanceScore(enhancedData)
+      };
 
-        // Only add non-null optional fields
-        if (summary.user_id) {
-          metadata.user_id = summary.user_id;
-        }
+      // Only add non-null optional fields
+      if (summary.user_id) {
+        metadata.user_id = summary.user_id;
+      }
         if (summary.metadata.conversation_duration) {
           metadata.conversation_duration = summary.metadata.conversation_duration;
         }
@@ -250,6 +272,32 @@ export class SummaryService implements ISummaryService {
       console.error('❌ Failed to vectorize summary:', error);
       // Don't throw - vectorization failure shouldn't break summary generation
     }
+  }
+
+  /**
+   * Calculate relevance score based on conversation content
+   */
+  private calculateRelevanceScore(enhancedData: any): number {
+    let score = 0.5; // Base score
+
+    // Boost for personal information
+    if (enhancedData.has_personal_info) score += 0.2;
+    
+    // Boost for specific topics
+    if (enhancedData.topics && enhancedData.topics.length > 0) score += 0.1;
+    
+    // Boost for emotional content (not neutral)
+    if (enhancedData.dominant_emotion && enhancedData.dominant_emotion !== 'neutral') score += 0.1;
+    
+    // Boost for longer conversations (more content)
+    if (enhancedData.conversation_length === 'long') score += 0.15;
+    else if (enhancedData.conversation_length === 'medium') score += 0.1;
+    
+    // Boost for positive emotional context
+    if (enhancedData.emotional_context && enhancedData.emotional_context.includes('positive')) score += 0.05;
+
+    // Cap at 1.0
+    return Math.min(score, 1.0);
   }
 }
 
