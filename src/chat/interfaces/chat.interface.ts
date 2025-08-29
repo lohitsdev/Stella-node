@@ -61,5 +61,7 @@ export interface IChatService {
   addMessage(chatId: string, message: IChatMessage): Promise<IChatSession | null>;
   getSession(chatId: string): Promise<IChatSession | null>;
   getUserSessions(email: string): Promise<IChatSession[]>;
+  getUserChatIds(email: string): Promise<string[]>;
+  getUserChatIdsWithTimestamps(email: string): Promise<Array<{chat_id: string, created_at: Date, started_at?: Date}>>;
   getActiveSession(email: string): Promise<IChatSession | null>;
 }

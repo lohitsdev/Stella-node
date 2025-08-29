@@ -1,288 +1,245 @@
-# Stella - Node.js TypeScript Project with MongoDB & Pinecone
+# Stella Node.js API
 
-A modern Node.js application built with TypeScript, featuring MongoDB for document storage and Pinecone for vector search capabilities. Organized using feature-based architecture.
+A powerful Node.js API for chat and user management with MongoDB and Pinecone integration.
 
 ## 🚀 Features
 
-- **TypeScript** - Full type safety and modern JavaScript features
-- **MongoDB** - Document database for storing application data
-- **Pinecone** - Vector database for similarity search and AI applications
-- **Feature-based Architecture** - Organized by domain/feature modules
-- **Class Validator** - Robust DTO validation with decorators
-- **Swagger Documentation** - Interactive API documentation
-- **ConfigService** - NestJS-style configuration management
-- **Modern tooling** - ES Modules, tsx for fast TypeScript execution
+- 💬 Real-time chat functionality
+- 👤 User authentication and profile management
+- 🔍 Semantic search with Pinecone
+- 🎭 Emotion analysis with Hume AI
+- 🤖 OpenAI integration
+- 📊 Chat analytics and summaries
 
-## 📦 Project Structure
+## 🛠️ Tech Stack
 
+- **Runtime**: Node.js
+- **Language**: TypeScript
+- **Database**: MongoDB
+- **Vector Database**: Pinecone
+- **AI Services**: OpenAI, Hume AI
+
+## 📋 API Endpoints
+
+### Chat Endpoints
+
+#### Get Chat IDs
+```http
+GET /api/chat/chatids/{email}
 ```
-stella/
-├── src/
-│   ├── auth/                     # Authentication module
-│   │   ├── dto/
-│   │   │   └── signup.dto.ts     # Auth DTOs with validation
-│   │   ├── schemas/
-│   │   │   └── auth.schema.ts    # MongoDB schemas
-│   │   ├── interfaces/
-│   │   │   └── auth.interface.ts # Auth interfaces
-│   │   ├── enums/
-│   │   │   └── auth.enum.ts      # Auth enumerations
-│   │   └── index.ts              # Module exports
-│   ├── documents/                # Document management module
-│   │   ├── dto/
-│   │   │   └── document.dto.ts   # Document DTOs
-│   │   ├── schemas/
-│   │   │   └── document.schema.ts# Document schemas
-│   │   ├── interfaces/
-│   │   │   └── document.interface.ts # Document interfaces
-│   │   ├── enums/
-│   │   │   └── document.enum.ts  # Document enumerations
-│   │   └── index.ts              # Module exports
-│   ├── vectors/                  # Vector operations module
-│   │   ├── dto/
-│   │   │   └── vector.dto.ts     # Vector DTOs
-│   │   ├── schemas/
-│   │   │   └── vector.schema.ts  # Vector schemas
-│   │   ├── interfaces/
-│   │   │   └── vector.interface.ts # Vector interfaces
-│   │   ├── enums/
-│   │   │   └── vector.enum.ts    # Vector enumerations
-│   │   └── index.ts              # Module exports
-│   ├── common/                   # Shared/global components
-│   │   ├── dto/
-│   │   │   └── pagination.dto.ts # Common DTOs
-│   │   ├── schemas/
-│   │   │   └── app.schema.ts     # Global schemas
-│   │   ├── interfaces/
-│   │   │   ├── config.interface.ts    # Configuration interfaces
-│   │   │   ├── database.interface.ts  # Database interfaces
-│   │   │   └── service.interface.ts   # Service interfaces
-│   │   ├── enums/
-│   │   │   └── app.enum.ts       # Global enumerations
-│   │   └── index.ts              # Module exports
-│   ├── config/
-│   │   └── swagger.config.ts     # OpenAPI 3.0 configuration
-│   ├── database/
-│   │   ├── mongodb.ts           # MongoDB connection
-│   │   └── pinecone.ts          # Pinecone connection
-│   ├── services/
-│   │   ├── config.service.ts     # NestJS-style ConfigService
-│   │   └── validation.service.ts # DTO validation service
-│   ├── examples/
-│   │   └── vector-search.ts      # Vector search examples
-│   ├── scripts/
-│   │   └── start-api.ts          # Alternative startup script
-│   ├── app.ts                    # Express application with Swagger
-│   └── index.ts                  # Main entry point
-├── dist/                         # Compiled JavaScript output
-├── .env.example                  # Environment variables template
-├── config.example.env            # Additional config example
-└── README.md                     # This file
+Returns chat IDs with timestamps for a specific user.
+
+**Response Format**:
+```json
+{
+  "success": true,
+  "data": {
+    "chats": [
+      {
+        "chat_id": "1cfe5332-8357-453c-adff-fdd42c0cb89d",
+        "created_at": "2024-01-15T10:30:00.000Z",
+        "started_at": "2024-01-15T10:30:00.000Z"
+      }
+    ],
+    "count": 1
+  },
+  "message": "Chat IDs retrieved successfully",
+  "timestamp": "2024-01-15T10:35:00.000Z"
+}
 ```
 
-## 🛠️ Installation
+#### Get User Sessions
+```http
+GET /api/chat/sessions/{email}
+```
+Returns full chat session data (requires authentication).
 
-1. **Clone and install dependencies:**
-   ```bash
-   npm install
-   ```
+#### Search User Conversations
+```http
+GET /api/chat/search/user/{email}
+```
+Search through user's conversations with optional query parameter.
 
-2. **Set up environment variables:**
-   ```bash
-   cp .env.example .env
-   ```
-   
-   Edit `.env` with your actual configuration:
-   ```env
-   # MongoDB Configuration
-   MONGODB_URI=mongodb://localhost:27017/stella
-   
-   # Pinecone Configuration
-   PINECONE_API_KEY=your_pinecone_api_key_here
-   PINECONE_ENVIRONMENT=your_pinecone_environment_here
-   PINECONE_INDEX_NAME=stella-index
-   ```
+### Profile Endpoints
 
-## 🚀 Usage
+#### Get User Profile
+```http
+GET /api/auth/profile/{email}
+```
+Returns comprehensive user profile information.
 
-### Development Mode
+**Response Format**:
+```json
+{
+  "success": true,
+  "data": {
+    "name": "John Doe",
+    "email": "user@example.com",
+    "role": "user",
+    "status": "verified",
+    "provider": "local",
+    "emailVerified": true,
+    "lastLogin": "2024-01-15T10:30:00.000Z",
+    "profile": {
+      "avatar": "https://example.com/avatar.jpg",
+      "bio": "Software developer",
+      "phone": "+1234567890",
+      "timezone": "UTC+0"
+    },
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  },
+  "message": "Profile retrieved successfully",
+  "timestamp": "2024-01-15T10:35:00.000Z"
+}
+```
+
+### Authentication Endpoints
+
+#### Sign Up
+```http
+POST /api/auth/signup
+```
+Create a new user account.
+
+#### Login
+```http
+POST /api/auth/login
+```
+Authenticate user and get access token.
+
+#### Refresh Token
+```http
+POST /api/auth/refresh
+```
+Get new access token using refresh token.
+
+#### Logout
+```http
+POST /api/auth/logout
+```
+Invalidate current session (requires authentication).
+
+## 🔧 Performance Optimizations
+
+### Database Optimization
+- MongoDB connection pooling (5-10 connections)
+- Strategic indexing for common queries
+- Field projections to minimize data transfer
+
+### Search Optimization
+- Semantic search with relevance filtering
+- Hybrid search strategy (vector + metadata)
+- Result limiting and pagination
+
+### API Response Optimization
+- Lightweight endpoints with minimal data
+- MongoDB projections for field selection
+- Standardized response format
+
+## 🔒 Security Features
+
+- JWT authentication
+- Password hashing
+- Email verification
+- Rate limiting
+- Sensitive data exclusion
+- Session management
+
+## 📦 Environment Variables
+
+```env
+# MongoDB Configuration
+MONGODB_URI=your_mongodb_uri
+MONGODB_DATABASE=your_database_name
+MONGODB_MAX_POOL_SIZE=10
+MONGODB_MIN_POOL_SIZE=5
+MONGODB_MAX_IDLE_TIME_MS=30000
+MONGODB_SERVER_SELECTION_TIMEOUT_MS=5000
+MONGODB_CONNECT_TIMEOUT_MS=10000
+
+# Pinecone Configuration
+PINECONE_API_KEY=your_pinecone_api_key
+PINECONE_ENVIRONMENT=your_environment
+PINECONE_INDEX_NAME=your_index_name
+PINECONE_DIMENSION=1024
+PINECONE_METRIC=cosine
+
+# Application Configuration
+PORT=3000
+NODE_ENV=development
+
+# JWT Configuration
+JWT_SECRET=your_jwt_secret
+JWT_EXPIRES_IN=24h
+REFRESH_TOKEN_EXPIRES_IN=7d
+
+# Hume AI Configuration
+HUME_API_KEY=your_hume_api_key
+HUME_SECRET_KEY=your_hume_secret_key
+NEXT_PUBLIC_HUME_CONFIG_ID=your_config_id
+
+# OpenAI Configuration
+OPENAI_API_KEY=your_openai_api_key
+```
+
+## 🚀 Getting Started
+
+1. Clone the repository
 ```bash
-npm run dev          # Main application
-npm run dev:api      # API server with alternative startup
+git clone https://github.com/your-repo/stella-node.git
 ```
 
-### Build for Production
+2. Install dependencies
 ```bash
-npm run build
+npm install
 ```
 
-### Run Production Build
+3. Set up environment variables
 ```bash
-npm start           # Main application
-npm start:api       # API server
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-### Direct TypeScript Execution
+4. Start the development server
 ```bash
-node --import tsx src/index.ts
+npm run dev
 ```
 
-## 💾 Database Setup
-
-### MongoDB
-- Install MongoDB locally or use MongoDB Atlas
-- Update `MONGODB_URI` in your `.env` file
-- The application will automatically connect and create collections as needed
-
-### Pinecone
-1. Create a Pinecone account at [pinecone.io](https://pinecone.io)
-2. Create a new index with your desired dimensions
-3. Get your API key and environment from the Pinecone console
-4. Update the Pinecone configuration in your `.env` file
-
-## 📚 API Examples
-
-### Authentication
-```typescript
-import { SignupDto, LoginDto, UserRole } from './auth';
-
-// User signup
-const signupData: SignupDto = {
-  firstName: 'John',
-  lastName: 'Doe',
-  email: 'john@example.com',
-  password: 'securepassword',
-  role: UserRole.USER
-};
+5. Access the API documentation
+```
+http://localhost:3000/api-docs
 ```
 
-### Document Management
-```typescript
-import { CreateDocumentDto, DocumentType } from './documents';
+## 📚 API Documentation
 
-// Create document
-const documentData: CreateDocumentDto = {
-  message: 'Document content',
-  type: DocumentType.TEXT,
-  timestamp: new Date(),
-  metadata: { category: 'important' }
-};
-```
+Full API documentation is available at `/api-docs` when the server is running. This includes:
+- Detailed endpoint descriptions
+- Request/response schemas
+- Authentication requirements
+- Example requests and responses
 
-### Vector Operations
-```typescript
-import { VectorQueryDto, VectorMetric } from './vectors';
+## 🔍 Health Check
 
-// Query vectors
-const queryData: VectorQueryDto = {
-  vector: [0.1, 0.2, 0.3, ...],
-  topK: 5,
-  includeMetadata: true
-};
-```
-
-### Using Common Components
-```typescript
-import { PaginationDto, SortOrder, Environment } from './common';
-
-// Pagination
-const pagination: PaginationDto = {
-  page: 1,
-  limit: 10,
-  sortBy: 'createdAt',
-  sortOrder: SortOrder.DESC
-};
-```
-
-## 🎯 Architecture Benefits
-
-### 🏗️ **Feature-Based Organization**
-- **Modularity**: Each feature is self-contained with its own DTOs, schemas, interfaces, and enums
-- **Scalability**: Easy to add new features without affecting existing ones
-- **Maintainability**: Related code is grouped together, reducing cognitive load
-
-### 🔧 **Type Safety**
-- **DTOs**: Input validation with class-validator decorators
-- **Interfaces**: Clear contracts for data structures and services
-- **Enums**: Type-safe constants and options
-- **Schemas**: Database validation and indexing
-
-### 📖 **Developer Experience**
-- **Clean Imports**: Use feature modules (`import { SignupDto } from './auth'`)
-- **Swagger Documentation**: Interactive API docs at `/api-docs`
-- **ConfigService**: Type-safe configuration management
-- **Validation Service**: Centralized DTO validation
-
-## 🔧 Configuration
-
-The application uses a centralized configuration system:
-
-```typescript
-// Access configuration
-const port = configService.get('app.port');
-const mongoUri = configService.get('mongodb.uri');
-const pineconeKey = configService.get('pinecone.apiKey');
-
-// With default values
-const timeout = configService.get('app.timeout', 5000);
-```
-
-## 🧪 Testing
-
-```bash
-npm test
-```
-
-## 📝 Environment Variables
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `MONGODB_URI` | MongoDB connection string | Yes |
-| `PINECONE_API_KEY` | Pinecone API key | Yes |
-| `PINECONE_ENVIRONMENT` | Pinecone environment | Yes |
-| `PINECONE_INDEX_NAME` | Pinecone index name | No (default: stella-index) |
-| `PORT` | Application port | No (default: 3000) |
-| `NODE_ENV` | Environment mode | No (default: development) |
-
-## 🎯 Use Cases
-
-This project template is perfect for:
-- **AI/ML Applications** - Vector similarity search for embeddings
-- **Document Management** - Full-text search with semantic similarity
-- **User Authentication** - Complete auth system with roles and permissions
-- **API Development** - Well-structured REST APIs with documentation
-- **Microservices** - Feature-based architecture ready for service extraction
-
-## 🚀 API Endpoints
-
-- **📖 Swagger Documentation:** `http://localhost:3000/api-docs`
-- **💚 Health Check:** `http://localhost:3000/health`
-- **ℹ️ API Info:** `http://localhost:3000/api/info`
-- **📋 Swagger JSON:** `http://localhost:3000/swagger.json`
+The API provides health check endpoints:
+- `/health` - Basic health status
+- `/api/info` - Detailed API information
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch
-3. Add your feature following the established patterns
-4. Add tests if applicable
-5. Submit a pull request
+2. Create your feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add some amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 📄 License
 
-ISC License - see package.json for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
----
+## 🙏 Acknowledgments
 
-## 🌟 **Key Improvements in This Version**
-
-✅ **Feature-Based Architecture** - Organized by domain instead of file type  
-✅ **Complete Authentication Module** - With DTOs, schemas, interfaces, and enums  
-✅ **Document Management Module** - Full CRUD operations support  
-✅ **Vector Operations Module** - Comprehensive vector search capabilities  
-✅ **Common Components** - Shared utilities and types  
-✅ **Clean Module Exports** - Easy-to-use imports for each feature  
-✅ **Enhanced Swagger Documentation** - Complete API documentation  
-✅ **Type-Safe Configuration** - Robust configuration management  
-
-This architecture follows modern best practices and is ready for production scaling! 🚀
+- OpenAI for AI capabilities
+- Hume AI for emotion analysis
+- Pinecone for vector search
+- MongoDB for database services

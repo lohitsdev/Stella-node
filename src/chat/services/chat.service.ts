@@ -107,6 +107,42 @@ export class ChatService implements IChatService {
   }
 
   /**
+   * Get only chat IDs for a user by email (lightweight)
+   */
+  async getUserChatIds(email: string): Promise<string[]> {
+    const collection = mongodb.getCollection<IChatSession>('chat_sessions');
+    const sessions = await collection.find(
+      { email }, 
+      { 
+        projection: { chat_id: 1, _id: 0 },
+        sort: { createdAt: -1 }
+      }
+    ).toArray();
+    
+    return sessions.map(session => session.chat_id);
+  }
+
+  /**
+   * Get chat IDs with timestamps for a user by email (lightweight)
+   */
+  async getUserChatIdsWithTimestamps(email: string): Promise<Array<{chat_id: string, created_at: Date, started_at?: Date}>> {
+    const collection = mongodb.getCollection<IChatSession>('chat_sessions');
+    const sessions = await collection.find(
+      { email }, 
+      { 
+        projection: { chat_id: 1, createdAt: 1, started_at: 1, _id: 0 },
+        sort: { createdAt: -1 }
+      }
+    ).toArray();
+    
+    return sessions.map(session => ({
+      chat_id: session.chat_id,
+      created_at: session.createdAt,
+      started_at: session.started_at
+    }));
+  }
+
+  /**
    * Get active session for a user
    */
   async getActiveSession(email: string): Promise<IChatSession | null> {
