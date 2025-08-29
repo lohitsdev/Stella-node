@@ -1,0 +1,57 @@
+services:
+  - type: web
+    name: stella-node
+    env: node
+    plan: free
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      # MongoDB Configuration - YOU NEED TO SET THESE IN RENDER DASHBOARD
+      - key: MONGODB_URI
+        sync: false # Set this in Render dashboard with your actual MongoDB URI
+      - key: MONGODB_DATABASE
+        value: stella
+      - key: MONGODB_MAX_POOL_SIZE
+        value: "10"
+      - key: MONGODB_MIN_POOL_SIZE
+        value: "5"
+      - key: MONGODB_MAX_IDLE_TIME_MS
+        value: "30000"
+      - key: MONGODB_SERVER_SELECTION_TIMEOUT_MS
+        value: "5000"
+      - key: MONGODB_CONNECT_TIMEOUT_MS
+        value: "10000"
+      
+      # Pinecone Configuration - YOU NEED TO SET THESE IN RENDER DASHBOARD
+      - key: PINECONE_API_KEY
+        sync: false # Set this in Render dashboard with your actual API key
+      - key: PINECONE_ENVIRONMENT
+        value: aped-4627-b74a
+      - key: PINECONE_INDEX_NAME
+        value: rohit-buddy-voice-bot
+      - key: PINECONE_DIMENSION
+        value: "1024"
+      - key: PINECONE_METRIC
+        value: cosine
+      - key: PINECONE_HOST
+        value: https://rohit-buddy-voice-bot-wspn2ky.svc.aped-4627-b74a.pinecone.io
+      
+      # JWT Configuration
+      - key: JWT_SECRET
+        sync: false # Set this in Render dashboard with a secure secret
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: REFRESH_TOKEN_EXPIRES_IN
+        value: 7d
+      
+      # API Keys - YOU NEED TO SET THESE IN RENDER DASHBOARD
+      - key: HUME_API_KEY
+        sync: false # Set this in Render dashboard
+      - key: HUME_SECRET_KEY
+        sync: false # Set this in Render dashboard
+      - key: NEXT_PUBLIC_HUME_CONFIG_ID
+        sync: false # Set this in Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false # Set this in Render dashboard
