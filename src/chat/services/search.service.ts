@@ -83,7 +83,7 @@ export class SearchService {
         console.log(`🤖 Using OpenAI to extract specific information from ${userConversations.matches.length} conversations`);
         
         // Format conversations for OpenAI
-        const conversations = userConversations.matches.map(match => {
+        const conversations = userConversations.matches.map((match: any) => {
           let summary = match.metadata?.summary_text;
           // Try to parse if it's JSON string
           if (typeof summary === 'string' && summary.startsWith('{')) {
@@ -117,7 +117,7 @@ export class SearchService {
               query,
               results: [{
                 chat_id: info.source_chat_id,
-                email: email,
+                email: email || 'unknown',
                 summary: info.value,
                 score: 1.0,
                 created_at: new Date().toISOString(),
@@ -374,7 +374,7 @@ export class SearchService {
 
     // Count topic matches
     let matches = 0;
-    topics.forEach(topic => {
+    topics.forEach((topic: string) => {
       if (topic && queryLower.includes(topic)) {
         matches++;
       }
@@ -458,13 +458,13 @@ export class SearchService {
     const aboutIndex = queryLower.indexOf('about ');
     if (aboutIndex !== -1) {
       const topic = queryLower.substring(aboutIndex + 6).trim().split(' ')[0];
-      return topic;
+      return topic || null;
     }
 
     const regardingIndex = queryLower.indexOf('regarding ');
     if (regardingIndex !== -1) {
       const topic = queryLower.substring(regardingIndex + 10).trim().split(' ')[0];
-      return topic;
+      return topic || null;
     }
 
     return null;
