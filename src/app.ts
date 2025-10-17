@@ -298,16 +298,42 @@ export class StellaApp {
   public async initializeDatabases(): Promise<void> {
     console.log('🔗 Connecting to databases...');
 
-    try {
-      await mongodb.connect();
-    } catch (error) {
-      console.error('Failed to connect to MongoDB:', error);
+    const mongoConnected = await this.connectMongoDB();
+    const pineconeConnected = await this.connectPinecone();
+
+    // In production, require at least MongoDB to be connected
+    if (!mongoConnected && configService.get('app.nodeEnv') === 'production') {
+      throw new Error('Failed to connect to MongoDB in production');
     }
 
+    if (!pineconeConnected) {
+      console.warn('⚠️  Pinecone not connected - vector search features will be unavailable');
+    }
+  }
+
+  /**
+   * Connect to MongoDB with proper error handling
+   */
+  private async connectMongoDB(): Promise<boolean> {
+    try {
+      await mongodb.connect();
+      return true;
+    } catch (error) {
+      console.error('❌ Failed to connect to MongoDB:', error);
+      return false;
+    }
+  }
+
+  /**
+   * Connect to Pinecone with proper error handling
+   */
+  private async connectPinecone(): Promise<boolean> {
     try {
       await pinecone.connect();
+      return true;
     } catch (error) {
-      console.error('Failed to connect to Pinecone:', error);
+      console.error('❌ Failed to connect to Pinecone:', error);
+      return false;
     }
   }
 
