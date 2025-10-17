@@ -38,6 +38,10 @@ export class StellaApp {
   constructor() {
     this.app = express();
     this.port = configService.get('app.port', 3000);
+    
+    // Trust proxy - required for Render, Heroku, AWS, etc.
+    this.app.set('trust proxy', 1);
+    
     this.initializeMiddleware();
     this.initializeRoutes();
     this.initializeSwagger();
