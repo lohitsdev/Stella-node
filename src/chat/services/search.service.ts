@@ -379,7 +379,7 @@ export class SearchService {
 
     // Count topic matches
     let matches = 0;
-    topics.forEach((topic: any) => {
+    topics.forEach((topic: string) => {
       if (topic && queryLower.includes(topic)) {
         matches++;
       }
@@ -462,19 +462,13 @@ export class SearchService {
     // Simple topic extraction - can be enhanced
     const aboutIndex = queryLower.indexOf('about ');
     if (aboutIndex !== -1) {
-      const topic = queryLower
-        .substring(aboutIndex + 6)
-        .trim()
-        .split(' ')[0];
+      const topic = queryLower.substring(aboutIndex + 6).trim().split(' ')[0];
       return topic || null;
     }
 
     const regardingIndex = queryLower.indexOf('regarding ');
     if (regardingIndex !== -1) {
-      const topic = queryLower
-        .substring(regardingIndex + 10)
-        .trim()
-        .split(' ')[0];
+      const topic = queryLower.substring(regardingIndex + 10).trim().split(' ')[0];
       return topic || null;
     }
 
