@@ -7,12 +7,12 @@ export class VAPIController {
   /**
    * POST /api/vapi/webhook
    * Main webhook endpoint for VAPI to send real-time messages
+   * This is the GLOBAL webhook URL configured in VAPI Dashboard
    */
   async webhook(req: Request, res: Response): Promise<void> {
     try {
-      const message = req.body;
-      const email = req.query.email as string | undefined;
-
+      const message = req.body.message || req.body;
+      
       console.log(`📞 VAPI Webhook received: ${message.type || 'unknown'}`);
 
       if (!message.type) {
@@ -23,6 +23,11 @@ export class VAPIController {
         });
         return;
       }
+
+      // Extract email from message metadata (passed from frontend)
+      const email = message.call?.metadata?.email || 
+                    message.assistant?.metadata?.email ||
+                    message.customer?.email;
 
       // Process the webhook message
       const result = await vapiService.processWebhookMessage(message, email);
