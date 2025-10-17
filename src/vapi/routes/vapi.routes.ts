@@ -13,6 +13,7 @@ router.post('/webhook', vapiController.webhook.bind(vapiController));
 
 // Session management
 router.post('/session/start', vapiController.startSession.bind(vapiController));
+router.post('/session/end', vapiController.endSession.bind(vapiController));
 router.get('/session/:sessionId', vapiController.getSession.bind(vapiController));
 router.get('/sessions/:email', vapiController.getUserSessions.bind(vapiController));
 

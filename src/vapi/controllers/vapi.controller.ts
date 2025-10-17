@@ -152,6 +152,42 @@ export class VAPIController {
   }
 
   /**
+   * POST /api/vapi/session/end
+   * End a VAPI session (called from frontend when call ends)
+   */
+  async endSession(req: Request, res: Response): Promise<void> {
+    try {
+      const { sessionId } = req.body;
+
+      if (!sessionId) {
+        res.status(HttpStatus.BAD_REQUEST).json({
+          success: false,
+          error: 'Session ID is required',
+          timestamp: new Date()
+        });
+        return;
+      }
+
+      // Session end is typically handled by VAPI webhook (end-of-call-report)
+      // This endpoint acknowledges the frontend's end request
+      console.log(`📱 Frontend requested session end: ${sessionId}`);
+
+      res.status(HttpStatus.OK).json({
+        success: true,
+        message: 'Session end acknowledged. Processing via webhook.',
+        timestamp: new Date()
+      });
+    } catch (error: any) {
+      console.error('❌ Error ending session:', error);
+      res.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
+        success: false,
+        error: 'Internal server error ending session',
+        timestamp: new Date()
+      });
+    }
+  }
+
+  /**
    * GET /api/vapi/health
    * Health check
    */
