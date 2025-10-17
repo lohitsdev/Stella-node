@@ -94,11 +94,31 @@ export class MemoryController {
 
       const message = req.body.message || req.body;
       
+      // Extract email from message metadata if not in parameters
+      const emailFromMetadata = message.call?.metadata?.email || 
+                                message.assistant?.metadata?.email ||
+                                message.metadata?.email;
+      
       // Handle direct parameter format (flat body)
-      if (req.body.email && req.body.query) {
-        const email = req.body.email;
+      if (req.body.query) {
+        const email = req.body.email || emailFromMetadata;
         const query = req.body.query;
         const limit = req.body.limit || 3;
+
+        if (!email || email.includes('{{')) {
+          res.status(HttpStatus.BAD_REQUEST).json({
+            results: [{
+              name: 'memory-recall',
+              toolCallId: message.toolCallId || 'direct',
+              result: JSON.stringify({
+                success: false,
+                error: 'Email not found in request. Please ensure email is passed in call metadata from frontend.',
+                contextText: 'Unable to retrieve memories without user email.'
+              })
+            }]
+          });
+          return;
+        }
 
         console.log(`🧠 Direct format - Searching memory for ${email}: "${query}"`);
 

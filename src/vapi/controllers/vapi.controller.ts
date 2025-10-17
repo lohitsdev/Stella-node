@@ -14,6 +14,7 @@ export class VAPIController {
       const message = req.body.message || req.body;
       
       console.log(`📞 VAPI Webhook received: ${message.type || 'unknown'}`);
+      console.log('📧 Full webhook body:', JSON.stringify(req.body, null, 2));
 
       if (!message.type) {
         res.status(HttpStatus.BAD_REQUEST).json({
@@ -28,6 +29,12 @@ export class VAPIController {
       const email = message.call?.metadata?.email || 
                     message.assistant?.metadata?.email ||
                     message.customer?.email;
+
+      console.log('📧 Email extraction:');
+      console.log('  - call.metadata:', JSON.stringify(message.call?.metadata));
+      console.log('  - assistant.metadata:', JSON.stringify(message.assistant?.metadata));
+      console.log('  - customer:', JSON.stringify(message.customer));
+      console.log('  - Extracted email:', email || 'NOT FOUND');
 
       // Process the webhook message
       const result = await vapiService.processWebhookMessage(message, email);
@@ -50,6 +57,12 @@ export class VAPIController {
   async startSession(req: Request, res: Response): Promise<void> {
     try {
       const { email, userId, sessionId, phoneNumber, metadata } = req.body;
+
+      console.log('📧 startSession called with:');
+      console.log('  - email:', email);
+      console.log('  - userId:', userId);
+      console.log('  - sessionId:', sessionId);
+      console.log('  - metadata:', JSON.stringify(metadata));
 
       if (!email) {
         res.status(HttpStatus.BAD_REQUEST).json({

@@ -198,10 +198,14 @@ export class VAPIService {
       const db = await mongodb.getDatabase();
       const collection = db.collection(this.COLLECTION_NAME);
 
+      console.log('📧 handleEndOfCall - Email received:', email || 'NOT PROVIDED');
+      console.log('📧 handleEndOfCall - Call object:', JSON.stringify(message.call));
+
       // Get the session
       const session = await collection.findOne({ sessionId });
       if (!session) {
         console.log(`⚠️  Session not found for end of call: ${sessionId}`);
+        console.log(`📧 Creating new session with email: ${email || 'unknown'}`);
         // Create session from end of call report
         const newSession: IVAPISession = {
           sessionId,
@@ -343,6 +347,14 @@ export class VAPIService {
         return;
       }
 
+      console.log(`📧 storeInPinecone - Session email: ${session.email || 'NOT SET'}`);
+      console.log(`📧 storeInPinecone - Session data:`, {
+        sessionId: session.sessionId,
+        email: session.email,
+        userId: session.userId,
+        messageCount: session.messages?.length
+      });
+
       // Create conversation text from messages
       const conversationText = session.messages
         .map((msg: IVAPIConversationMessage) => `${msg.role}: ${msg.content}`)
@@ -377,6 +389,8 @@ export class VAPIService {
         }
       ]);
 
+      console.log(`📧 Pinecone upsert completed - Email stored: ${session.email}`);
+      
       // Update session to mark vector as stored
       await collection.updateOne(
         { sessionId },
