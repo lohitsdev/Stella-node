@@ -64,6 +64,7 @@ export interface IConfiguration {
   mongodb: IMongoConfig;
   pinecone: IPineconeConfig;
   openai: IOpenAIConfig;
+  vapi: IVAPIConfig;
   ai: IAIConfig;
 }
 
@@ -72,6 +73,15 @@ export interface IConfiguration {
  */
 export interface IOpenAIConfig {
   apiKey: string;
+}
+
+/**
+ * Interface for VAPI configuration
+ */
+export interface IVAPIConfig {
+  apiKey: string;
+  phoneNumberId?: string | undefined;
+  assistantId?: string | undefined;
 }
 
 /**

@@ -47,11 +47,11 @@ services:
         value: 7d
       
       # API Keys - YOU NEED TO SET THESE IN RENDER DASHBOARD
-      - key: HUME_API_KEY
+      - key: VAPI_API_KEY
         sync: false # Set this in Render dashboard
-      - key: HUME_SECRET_KEY
-        sync: false # Set this in Render dashboard
-      - key: NEXT_PUBLIC_HUME_CONFIG_ID
-        sync: false # Set this in Render dashboard
+      - key: VAPI_PHONE_NUMBER_ID
+        sync: false # Optional - Set in Render dashboard if needed
+      - key: VAPI_ASSISTANT_ID
+        sync: false # Optional - Set in Render dashboard if needed
       - key: OPENAI_API_KEY
         sync: false # Set this in Render dashboard

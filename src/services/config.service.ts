@@ -9,7 +9,8 @@ import type {
   IAIConfig,
   IMongoConfig,
   IPineconeConfig,
-  IOpenAIConfig
+  IOpenAIConfig,
+  IVAPIConfig
 } from '../common/interfaces/config.interface.js';
 
 // Load environment variables
@@ -213,12 +214,19 @@ export class ConfigService implements IConfigService {
       apiKey: process.env.OPENAI_API_KEY || ''
     };
 
+    const vapi: IVAPIConfig = {
+      apiKey: process.env.VAPI_API_KEY || '',
+      phoneNumberId: process.env.VAPI_PHONE_NUMBER_ID || undefined,
+      assistantId: process.env.VAPI_ASSISTANT_ID || undefined
+    };
+
     return {
       app,
       auth,
       mongodb,
       pinecone,
       openai,
+      vapi,
       ai
     };
   }

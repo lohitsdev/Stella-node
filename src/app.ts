@@ -25,6 +25,7 @@ import { pinecone } from './database/pinecone.js';
 import { personalizeRoutes } from './onboarding/routes/personalize.routes.js';
 import { configService } from './services/config.service.js';
 import { toolRoutes } from './tool/routes/tool.routes.js';
+import { vapiRoutes } from './vapi/routes/vapi.routes.js';
 
 /**
  * Main Express application class for Stella API
@@ -239,6 +240,9 @@ export class StellaApp {
 
     // Onboarding routes
     this.app.use('/api/onboarding', personalizeRoutes);
+
+    // VAPI routes
+    this.app.use('/api/vapi', vapiRoutes);
   }
 
   /**

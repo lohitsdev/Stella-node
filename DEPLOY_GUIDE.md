@@ -15,9 +15,7 @@ The error `Cannot find module '/opt/render/project/src/dist/index.js'` occurs be
    MONGODB_URI=your_mongodb_connection_string
    PINECONE_API_KEY=your_pinecone_api_key
    JWT_SECRET=your_secure_jwt_secret
-   HUME_API_KEY=your_hume_api_key
-   HUME_SECRET_KEY=your_hume_secret_key
-   NEXT_PUBLIC_HUME_CONFIG_ID=your_hume_config_id
+   VAPI_API_KEY=your_vapi_api_key
    OPENAI_API_KEY=your_openai_api_key
    ```
 
