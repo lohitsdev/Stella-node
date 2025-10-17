@@ -92,14 +92,61 @@ export class MemoryController {
       console.log('🔧 VAPI Tool Call: memory-recall');
       console.log('Request body:', JSON.stringify(req.body, null, 2));
 
-      // Extract tool call from VAPI request
       const message = req.body.message || req.body;
+      
+      // Handle direct parameter format (flat body)
+      if (req.body.email && req.body.query) {
+        const email = req.body.email;
+        const query = req.body.query;
+        const limit = req.body.limit || 3;
+
+        console.log(`🧠 Direct format - Searching memory for ${email}: "${query}"`);
+
+        const memoryResult = await memoryService.searchMemory({
+          email,
+          query,
+          limit
+        });
+
+        if (memoryResult.success && memoryResult.data) {
+          const contextText = memoryService.formatMemoriesForContext(memoryResult.data);
+          
+          res.status(HttpStatus.OK).json({
+            results: [{
+              name: 'memory-recall',
+              toolCallId: message.toolCallId || 'direct',
+              result: JSON.stringify({
+                success: true,
+                memories: memoryResult.data,
+                contextText,
+                message: `Found ${memoryResult.data.length} relevant past conversations`
+              })
+            }]
+          });
+        } else {
+          res.status(HttpStatus.OK).json({
+            results: [{
+              name: 'memory-recall',
+              toolCallId: message.toolCallId || 'direct',
+              result: JSON.stringify({
+                success: true,
+                message: 'No relevant past conversations found',
+                contextText: 'This is our first conversation.',
+                memories: []
+              })
+            }]
+          });
+        }
+        return;
+      }
+
+      // Handle VAPI tool call format (nested structure)
       const toolCalls = message.toolWithToolCallList || message.toolCallList || [];
 
       if (!toolCalls || toolCalls.length === 0) {
         res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
-          error: 'No tool calls found in request',
+          error: 'No tool calls or direct parameters found in request',
           timestamp: new Date()
         });
         return;
@@ -126,6 +173,8 @@ export class MemoryController {
           continue;
         }
 
+        console.log(`🧠 Tool call format - Searching memory for ${email}: "${query}"`);
+
         // Search memory
         const memoryResult = await memoryService.searchMemory({
           email,
@@ -151,9 +200,10 @@ export class MemoryController {
             name: 'memory-recall',
             toolCallId: toolCall.id || toolCall.toolCall?.id,
             result: JSON.stringify({
-              success: false,
+              success: true,
               message: 'No relevant past conversations found',
-              contextText: 'This is our first conversation.'
+              contextText: 'This is our first conversation.',
+              memories: []
             })
           });
         }
