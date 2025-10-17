@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
-import { toolService } from '../services/tool.service.js';
+
 import { validationService } from '../../services/validation.service.js';
 import { ToolQueryDto } from '../dto/tool.dto.js';
+import { toolService } from '../services/tool.service.js';
 
 /**
  * Controller for tool endpoints
  */
 export class ToolController {
-
   /**
    * @swagger
    * /api/tool:
@@ -83,7 +83,6 @@ export class ToolController {
       }
 
       res.status(200).json(result);
-
     } catch (error: any) {
       console.error('❌ Tool query processing error:', error);
       res.status(500).json({
@@ -121,7 +120,7 @@ export class ToolController {
       const { email } = req.params;
       console.log(`📋 GET /api/tool/history/${email}`);
 
-      if (!email || !email.includes('@')) {
+      if (!email?.includes('@')) {
         res.status(400).json({
           success: false,
           error: 'Valid email address is required',
@@ -132,7 +131,6 @@ export class ToolController {
 
       const result = await toolService.getQueryHistory(email);
       res.status(200).json(result);
-
     } catch (error: any) {
       console.error('❌ Query history error:', error);
       res.status(500).json({
@@ -181,7 +179,7 @@ export class ToolController {
       }
 
       const result = await toolService.getQueryResult(queryId);
-      
+
       if (!result.success) {
         const statusCode = result.error?.includes('not found') ? 404 : 400;
         res.status(statusCode).json(result);
@@ -189,7 +187,6 @@ export class ToolController {
       }
 
       res.status(200).json(result);
-
     } catch (error: any) {
       console.error('❌ Query result error:', error);
       res.status(500).json({

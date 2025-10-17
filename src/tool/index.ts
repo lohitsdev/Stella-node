@@ -4,11 +4,7 @@
 export { ToolQueryDto, ToolResponseDto } from './dto/tool.dto.js';
 
 // Interfaces
-export type { 
-  IToolQuery, 
-  IToolResult, 
-  IToolService 
-} from './interfaces/tool.interface.js';
+export type { IToolQuery, IToolResult, IToolService } from './interfaces/tool.interface.js';
 
 // Services
 export { ToolService, toolService } from './services/tool.service.js';
@@ -17,4 +13,4 @@ export { ToolService, toolService } from './services/tool.service.js';
 export { ToolController, toolController } from './controllers/tool.controller.js';
 
 // Routes
-export { default as toolRoutes } from './routes/tool.routes.js';
+export { toolRoutes } from './routes/tool.routes.js';

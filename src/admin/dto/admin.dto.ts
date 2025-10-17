@@ -1,5 +1,5 @@
-import { IsString, IsBoolean, IsOptional, IsEnum, IsArray, ValidateNested } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { IsString, IsBoolean, IsOptional, IsEnum, IsArray, ValidateNested } from 'class-validator';
 
 export class UpdateEnvironmentDto {
   @IsString()

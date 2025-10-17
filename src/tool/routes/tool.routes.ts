@@ -1,4 +1,5 @@
 import { Router } from 'express';
+
 import { toolController } from '../controllers/tool.controller.js';
 
 const router = Router();
@@ -12,4 +13,4 @@ router.get('/history/:email', toolController.getQueryHistory);
 // GET /api/tool/result/:queryId - Get a specific query result
 router.get('/result/:queryId', toolController.getQueryResult);
 
-export default router;
+export { router as toolRoutes };

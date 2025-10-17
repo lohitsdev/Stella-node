@@ -1,7 +1,6 @@
 import type { ObjectId, Document } from 'mongodb';
 
-import { ChatStatus, MessageSender } from '../enums/chat.enum.js';
-import type { IProcessedHumeData } from './hume.interface.js';
+import type { ChatStatus, MessageSender } from '../enums/chat.enum.js';
 
 /**
  * Interface for chat message
@@ -27,7 +26,6 @@ export interface IChatSession extends Document {
   ended_at?: Date;
   duration?: number; // in seconds
   metadata?: Record<string, any>;
-  hume_data?: IProcessedHumeData; // Hume AI chat data
   createdAt: Date;
   updatedAt: Date;
 }
@@ -62,6 +60,6 @@ export interface IChatService {
   getSession(chatId: string): Promise<IChatSession | null>;
   getUserSessions(email: string): Promise<IChatSession[]>;
   getUserChatIds(email: string): Promise<string[]>;
-  getUserChatIdsWithTimestamps(email: string): Promise<Array<{chat_id: string, created_at: Date, started_at?: Date}>>;
+  getUserChatIdsWithTimestamps(email: string): Promise<Array<{ chat_id: string; created_at: Date; started_at?: Date }>>;
   getActiveSession(email: string): Promise<IChatSession | null>;
 }

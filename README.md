@@ -7,7 +7,6 @@ A powerful Node.js API for chat and user management with MongoDB and Pinecone in
 - 💬 Real-time chat functionality
 - 👤 User authentication and profile management
 - 🔍 Semantic search with Pinecone
-- 🎭 Emotion analysis with Hume AI
 - 🤖 OpenAI integration
 - 📊 Chat analytics and summaries
 
@@ -17,7 +16,7 @@ A powerful Node.js API for chat and user management with MongoDB and Pinecone in
 - **Language**: TypeScript
 - **Database**: MongoDB
 - **Vector Database**: Pinecone
-- **AI Services**: OpenAI, Hume AI
+- **AI Services**: OpenAI
 
 ## 📋 API Endpoints
 
@@ -174,10 +173,6 @@ JWT_SECRET=your_jwt_secret
 JWT_EXPIRES_IN=24h
 REFRESH_TOKEN_EXPIRES_IN=7d
 
-# Hume AI Configuration
-HUME_API_KEY=your_hume_api_key
-HUME_SECRET_KEY=your_hume_secret_key
-NEXT_PUBLIC_HUME_CONFIG_ID=your_config_id
 
 # OpenAI Configuration
 OPENAI_API_KEY=your_openai_api_key
@@ -240,6 +235,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - OpenAI for AI capabilities
-- Hume AI for emotion analysis
 - Pinecone for vector search
 - MongoDB for database services

@@ -1,5 +1,6 @@
 import swaggerJSDoc from 'swagger-jsdoc';
 import type { SwaggerDefinition, Options } from 'swagger-jsdoc';
+
 import { configService } from '../services/config.service.js';
 
 /**
@@ -43,7 +44,7 @@ const swaggerDefinition: SwaggerDefinition = {
             description: 'User first name'
           },
           lastName: {
-            type: 'string', 
+            type: 'string',
             minLength: 2,
             description: 'User last name'
           },
@@ -76,101 +77,6 @@ const swaggerDefinition: SwaggerDefinition = {
           password: {
             type: 'string',
             description: 'User password'
-          }
-        }
-      },
-      // Document schemas  
-      CreateDocumentDto: {
-        type: 'object',
-        required: ['message', 'type'],
-        properties: {
-          message: {
-            type: 'string',
-            minLength: 1,
-            description: 'The content of the document'
-          },
-          type: {
-            type: 'string',
-            description: 'The type/category of the document'
-          },
-          timestamp: {
-            type: 'string',
-            format: 'date-time',
-            description: 'When the document was created'
-          },
-          metadata: {
-            type: 'object',
-            additionalProperties: true,
-            description: 'Additional metadata for the document'
-          }
-        }
-      },
-      DocumentResponseDto: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Unique identifier of the document'
-          },
-          message: {
-            type: 'string',
-            description: 'The content of the document'
-          },
-          type: {
-            type: 'string',
-            description: 'The type/category of the document'
-          },
-          timestamp: {
-            type: 'string',
-            format: 'date-time',
-            description: 'When the document was created'
-          },
-          metadata: {
-            type: 'object',
-            additionalProperties: true,
-            description: 'Additional metadata for the document'
-          }
-        }
-      },
-      // Vector schemas
-      VectorQueryDto: {
-        type: 'object',
-        required: ['vector', 'topK'],
-        properties: {
-          vector: {
-            type: 'array',
-            items: {
-              type: 'number'
-            },
-            description: 'The query vector for similarity search'
-          },
-          topK: {
-            type: 'integer',
-            minimum: 1,
-            maximum: 100,
-            description: 'Number of most similar vectors to return'
-          },
-          includeMetadata: {
-            type: 'boolean',
-            description: 'Whether to include metadata in results'
-          }
-        }
-      },
-      VectorSearchResultDto: {
-        type: 'object',
-        properties: {
-          id: {
-            type: 'string',
-            description: 'Unique identifier of the vector'
-          },
-          score: {
-            type: 'number',
-            description: 'Similarity score (0-1)'
-          },
-          metadata: {
-            type: 'object',
-            additionalProperties: true,
-            description: 'Additional metadata for the vector'
           }
         }
       },
@@ -318,14 +224,6 @@ const swaggerDefinition: SwaggerDefinition = {
       description: 'User authentication operations'
     },
     {
-      name: 'Documents',
-      description: 'Document management operations'
-    },
-    {
-      name: 'Vectors',
-      description: 'Vector operations and similarity search'
-    },
-    {
       name: 'Health',
       description: 'Health check and monitoring'
     }
@@ -336,13 +234,9 @@ const options: Options = {
   definition: swaggerDefinition,
   apis: [
     './src/auth/**/*.ts',
-    './src/documents/**/*.ts',
-    './src/vectors/**/*.ts',
     './src/routes/*.ts',
     './src/controllers/*.ts',
     './dist/auth/**/*.js',
-    './dist/documents/**/*.js',
-    './dist/vectors/**/*.js',
     './dist/routes/*.js',
     './dist/controllers/*.js'
   ]

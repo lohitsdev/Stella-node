@@ -20,4 +20,4 @@ export * from './controllers/auth.controller.js';
 export * from './middleware/auth.middleware.js';
 
 // Routes
-export { default as authRoutes } from './routes/auth.routes.js';
+export { authRoutes } from './routes/auth.routes.js';

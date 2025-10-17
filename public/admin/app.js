@@ -732,10 +732,6 @@ class AdminDashboard {
         document.getElementById('openai-cost').textContent = `$${data.openai.totalCost.toFixed(2)}`;
         document.getElementById('openai-requests-today').textContent = data.openai.requestsToday.toLocaleString();
         
-        // Hume AI metrics
-        document.getElementById('hume-calls').textContent = data.hume.totalCalls.toLocaleString();
-        document.getElementById('hume-events').textContent = data.hume.eventsProcessed.toLocaleString();
-        document.getElementById('hume-calls-today').textContent = data.hume.callsToday.toLocaleString();
         
         // Pinecone metrics
         document.getElementById('pinecone-queries').textContent = data.pinecone.totalQueries.toLocaleString();
@@ -756,7 +752,6 @@ class AdminDashboard {
 
     renderDatabaseStats(data) {
         // Overview metrics
-        document.getElementById('total-documents').textContent = data.totalDocuments.toLocaleString();
         document.getElementById('database-size').textContent = this.formatBytes(data.totalSize);
         document.getElementById('collections-count').textContent = data.collections.length.toString();
         
@@ -1053,15 +1048,6 @@ class AdminDashboard {
                                 <div class="metric-details">
                                     <span class="metric-value">$${analytics.aiUsage.openaiCost.toFixed(4)}</span>
                                     <span class="metric-label">Est. Cost</span>
-                                </div>
-                            </div>
-                            <div class="metric-card">
-                                <div class="metric-icon hume">
-                                    <i class="fas fa-heart"></i>
-                                </div>
-                                <div class="metric-details">
-                                    <span class="metric-value">${analytics.aiUsage.humeApiCalls}</span>
-                                    <span class="metric-label">Hume Calls</span>
                                 </div>
                             </div>
                         </div>

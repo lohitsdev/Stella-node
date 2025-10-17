@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
-import { authService } from '../services/auth.service.js';
+
 import { HttpStatus } from '../../common/enums/app.enum.js';
 import type { SignupDto, LoginDto } from '../dto/signup.dto.js';
+import { authService } from '../services/auth.service.js';
 
 /**
  * Authentication controller with proper error codes for frontend
  */
 export class AuthController {
-
   /**
    * @swagger
    * /api/auth/signup:
@@ -81,7 +81,7 @@ export class AuthController {
    *             schema:
    *               $ref: '#/components/schemas/ServiceResponse'
    */
-  async signup(req: Request, res: Response): Promise<void> {
+  async createUser(req: Request, res: Response): Promise<void> {
     try {
       const signupData: SignupDto = req.body;
 
@@ -90,7 +90,7 @@ export class AuthController {
       if (!result.success) {
         // Determine appropriate status code based on error
         let statusCode = HttpStatus.BAD_REQUEST;
-        
+
         if (result.error?.includes('Internal server error')) {
           statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         } else if (result.error?.includes('already exists')) {
@@ -207,7 +207,7 @@ export class AuthController {
    *       500:
    *         description: Internal server error
    */
-  async login(req: Request, res: Response): Promise<void> {
+  async authenticateUser(req: Request, res: Response): Promise<void> {
     try {
       const loginData: LoginDto = req.body;
 
@@ -216,15 +216,20 @@ export class AuthController {
       if (!result.success) {
         // Determine appropriate status code based on error
         let statusCode = HttpStatus.BAD_REQUEST;
-        
+
         if (result.error?.includes('Internal server error')) {
           statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         } else if (result.error?.includes('Invalid email or password')) {
           statusCode = HttpStatus.UNAUTHORIZED;
-        } else if (result.error?.includes('locked') || result.error?.includes('suspended') || result.error?.includes('blocked')) {
-          statusCode = result.error.includes('suspended') || result.error.includes('blocked') 
-            ? HttpStatus.FORBIDDEN 
-            : HttpStatus.UNAUTHORIZED;
+        } else if (
+          result.error?.includes('locked') ||
+          result.error?.includes('suspended') ||
+          result.error?.includes('blocked')
+        ) {
+          statusCode =
+            result.error.includes('suspended') || result.error.includes('blocked')
+              ? HttpStatus.FORBIDDEN
+              : HttpStatus.UNAUTHORIZED;
         }
 
         res.status(statusCode).json(result);
@@ -268,7 +273,7 @@ export class AuthController {
    *       500:
    *         description: Internal server error
    */
-  async refreshToken(req: Request, res: Response): Promise<void> {
+  async refreshUserToken(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.body;
 
@@ -329,7 +334,7 @@ export class AuthController {
    *       500:
    *         description: Internal server error
    */
-  async logout(req: Request, res: Response): Promise<void> {
+  async logoutUser(req: Request, res: Response): Promise<void> {
     try {
       const { refreshToken } = req.body;
       const userId = (req as any).user?.userId; // From auth middleware

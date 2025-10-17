@@ -1,4 +1,5 @@
 import express from 'express';
+
 import { authController } from '../controllers/auth.controller.js';
 import { profileController } from '../controllers/profile.controller.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
@@ -10,14 +11,14 @@ const router = express.Router();
  */
 
 // Public routes
-router.post('/signup', authController.signup.bind(authController));
-router.post('/login', authController.login.bind(authController));
-router.post('/refresh', authController.refreshToken.bind(authController));
+router.post('/signup', authController.createUser.bind(authController));
+router.post('/login', authController.authenticateUser.bind(authController));
+router.post('/refresh', authController.refreshUserToken.bind(authController));
 
 // Protected routes
-router.post('/logout', authMiddleware, authController.logout.bind(authController));
+router.post('/logout', authMiddleware, authController.logoutUser.bind(authController));
 
 // Profile routes
 router.get('/profile/:email', profileController.getProfile.bind(profileController));
 
-export default router;
+export { router as authRoutes };

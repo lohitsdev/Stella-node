@@ -110,11 +110,6 @@ export interface IAIUsageStats {
     requestsToday: number;
     averageTokensPerRequest: number;
   };
-  hume: {
-    totalCalls: number;
-    eventsProcessed: number;
-    callsToday: number;
-  };
   pinecone: {
     totalQueries: number;
     averageLatency: number;
@@ -165,9 +160,6 @@ export interface IUserAnalytics {
     openaiRequests: number;
     openaiTokens: number;
     openaiCost: number;
-    humeApiCalls: number;
-    humeEventsProcessed: number;
-    emotionAnalysisCount: number;
   };
   vectorActivity: {
     searchQueries: number;

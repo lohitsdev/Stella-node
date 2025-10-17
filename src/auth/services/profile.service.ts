@@ -1,6 +1,6 @@
+import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
 import { mongodb } from '../../database/mongodb.js';
 import type { IUser } from '../interfaces/auth.interface.js';
-import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
 
 export interface IUserProfile {
   name: string;
@@ -27,11 +27,11 @@ export class ProfileService {
   async getProfileByEmail(email: string): Promise<IServiceResponse<IUserProfile>> {
     try {
       const collection = mongodb.getCollection<IUser>('users');
-      
+
       // Use projection to exclude sensitive fields
       const user = await collection.findOne(
         { email },
-        { 
+        {
           projection: {
             password: 0,
             refreshTokens: 0,

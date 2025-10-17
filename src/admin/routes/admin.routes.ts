@@ -1,7 +1,8 @@
 import { Router } from 'express';
 import { body, query } from 'express-validator';
-import { AdminController } from '../controllers/admin.controller.js';
+
 import { authMiddleware } from '../../auth/middleware/auth.middleware.js';
+import { AdminController } from '../controllers/admin.controller.js';
 
 const router = Router();
 const adminController = new AdminController();
@@ -15,11 +16,11 @@ const requireAdmin = (req: any, res: any, next: any) => {
 
   // Fallback: Check for basic auth with admin/admin
   const authHeader = req.headers.authorization;
-  if (authHeader && authHeader.startsWith('Basic ')) {
+  if (authHeader?.startsWith('Basic ')) {
     const base64Credentials = authHeader.substring(6);
     const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
     const [username, password] = credentials.split(':');
-    
+
     if (username === 'admin' && password === 'admin') {
       // Set a fake user object for the fallback
       req.user = { userId: 'admin-fallback', email: 'admin@admin.com', role: 'admin' };
@@ -43,9 +44,9 @@ const requireAdmin = (req: any, res: any, next: any) => {
 // Optional authentication middleware (tries JWT first, then falls back)
 const optionalAuthMiddleware = async (req: any, res: any, next: any) => {
   const authHeader = req.headers.authorization;
-  
+
   // If there's a Bearer token, try to authenticate with JWT
-  if (authHeader && authHeader.startsWith('Bearer ')) {
+  if (authHeader?.startsWith('Bearer ')) {
     try {
       await authMiddleware(req, res, (error?: any) => {
         if (error) {
@@ -73,11 +74,15 @@ router.use(requireAdmin);
 // Environment variable management
 router.get('/environment', adminController.getEnvironmentVariables.bind(adminController));
 
-router.put('/environment', [
-  body('variables').isArray().withMessage('Variables must be an array'),
-  body('variables.*.key').isString().notEmpty().withMessage('Variable key is required'),
-  body('variables.*.value').isString().withMessage('Variable value must be a string')
-], adminController.updateEnvironmentVariables.bind(adminController));
+router.put(
+  '/environment',
+  [
+    body('variables').isArray().withMessage('Variables must be an array'),
+    body('variables.*.key').isString().notEmpty().withMessage('Variable key is required'),
+    body('variables.*.value').isString().withMessage('Variable value must be a string')
+  ],
+  adminController.updateEnvironmentVariables.bind(adminController)
+);
 
 // System monitoring
 router.get('/system/status', adminController.getSystemStatus.bind(adminController));
@@ -88,9 +93,11 @@ router.get('/system/services', adminController.getServiceStatus.bind(adminContro
 router.get('/analytics', adminController.getAnalytics.bind(adminController));
 
 // Logs
-router.get('/logs', [
-  query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('Limit must be between 1 and 1000')
-], adminController.getSystemLogs.bind(adminController));
+router.get(
+  '/logs',
+  [query('limit').optional().isInt({ min: 1, max: 1000 }).withMessage('Limit must be between 1 and 1000')],
+  adminController.getSystemLogs.bind(adminController)
+);
 
 // System management
 router.post('/restart', adminController.restartApplication.bind(adminController));
@@ -102,9 +109,11 @@ router.get('/dashboard', adminController.getDashboardData.bind(adminController))
 router.get('/users/stats', adminController.getUserStats.bind(adminController));
 router.get('/users', adminController.getUsers.bind(adminController));
 router.get('/users/:userId/analytics', adminController.getUserAnalytics.bind(adminController));
-router.put('/users/:userId/status', [
-  body('status').isString().isIn(['verified', 'suspended', 'blocked', 'pending']).withMessage('Invalid status')
-], adminController.updateUserStatus.bind(adminController));
+router.put(
+  '/users/:userId/status',
+  [body('status').isString().isIn(['verified', 'suspended', 'blocked', 'pending']).withMessage('Invalid status')],
+  adminController.updateUserStatus.bind(adminController)
+);
 
 // Security monitoring
 router.get('/security/events', adminController.getSecurityEvents.bind(adminController));
@@ -125,4 +134,4 @@ router.post('/tracking/interaction', adminController.trackUserInteraction.bind(a
 router.post('/tracking/page-view', adminController.trackPageView.bind(adminController));
 router.post('/tracking/feature-usage', adminController.trackFeatureUsage.bind(adminController));
 
-export default router;
+export { router as adminRoutes };

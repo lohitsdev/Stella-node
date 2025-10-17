@@ -2,7 +2,7 @@
  * MongoDB schemas for comprehensive user activity tracking
  */
 
-import { ObjectId } from 'mongodb';
+import type { ObjectId } from 'mongodb';
 
 export interface IUserSession {
   _id?: ObjectId;

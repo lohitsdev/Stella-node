@@ -1,8 +1,9 @@
 import type { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
+
+import type { UpdateEnvironmentDto, BulkUpdateEnvironmentDto } from '../dto/admin.dto.js';
 import { adminService } from '../services/admin.service.js';
 import { userTrackingService } from '../services/user-tracking.service.js';
-import type { UpdateEnvironmentDto, BulkUpdateEnvironmentDto } from '../dto/admin.dto.js';
 
 export class AdminController {
   /**
@@ -24,7 +25,7 @@ export class AdminController {
   async getEnvironmentVariables(req: Request, res: Response): Promise<void> {
     try {
       const envVars = await adminService.getEnvironmentVariables();
-      
+
       res.json({
         success: true,
         data: envVars,
@@ -88,11 +89,11 @@ export class AdminController {
       }
 
       const { variables } = req.body as BulkUpdateEnvironmentDto;
-      
+
       await adminService.updateEnvironmentVariables(variables);
-      
-      adminService.addSystemLog('info', `Environment variables updated by admin`, { 
-        updatedKeys: variables.map(v => v.key) 
+
+      adminService.addSystemLog('info', 'Environment variables updated by admin', {
+        updatedKeys: variables.map(v => v.key)
       });
 
       res.json({
@@ -126,7 +127,7 @@ export class AdminController {
   async getSystemStatus(req: Request, res: Response): Promise<void> {
     try {
       const systemInfo = await adminService.getSystemInfo();
-      
+
       res.json({
         success: true,
         data: systemInfo,
@@ -157,7 +158,7 @@ export class AdminController {
   async getSystemMetrics(req: Request, res: Response): Promise<void> {
     try {
       const metrics = await adminService.getSystemMetrics();
-      
+
       res.json({
         success: true,
         data: metrics,
@@ -188,7 +189,7 @@ export class AdminController {
   async getServiceStatus(req: Request, res: Response): Promise<void> {
     try {
       const services = await adminService.getServiceStatus();
-      
+
       res.json({
         success: true,
         data: services,
@@ -219,7 +220,7 @@ export class AdminController {
   async getAnalytics(req: Request, res: Response): Promise<void> {
     try {
       const analytics = await adminService.getAnalytics();
-      
+
       res.json({
         success: true,
         data: analytics,
@@ -258,7 +259,7 @@ export class AdminController {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const logs = adminService.getSystemLogs(limit);
-      
+
       res.json({
         success: true,
         data: logs,
@@ -295,7 +296,7 @@ export class AdminController {
   async restartApplication(req: Request, res: Response): Promise<void> {
     try {
       adminService.addSystemLog('info', 'Application restart initiated by admin');
-      
+
       res.json({
         success: true,
         message: 'Application restart initiated. The service will be unavailable for a few seconds.',
@@ -489,7 +490,7 @@ export class AdminController {
       }
 
       const success = await adminService.updateUserStatus(userId, status);
-      
+
       if (success) {
         res.json({
           success: true,
@@ -535,7 +536,7 @@ export class AdminController {
     try {
       const limit = parseInt(req.query.limit as string) || 100;
       const events = await adminService.getSecurityEvents(limit);
-      
+
       res.json({
         success: true,
         data: events,
@@ -676,7 +677,7 @@ export class AdminController {
       }
 
       const analytics = await adminService.getUserAnalytics(userId);
-      
+
       res.json({
         success: true,
         data: analytics,
@@ -737,7 +738,7 @@ export class AdminController {
       }
 
       const sessionId = await userTrackingService.startSession(email, deviceInfo || {});
-      
+
       res.json({
         success: true,
         data: { sessionId },
@@ -788,7 +789,7 @@ export class AdminController {
       }
 
       await userTrackingService.endSession(sessionId);
-      
+
       res.json({
         success: true,
         message: 'Session ended successfully',
@@ -853,7 +854,7 @@ export class AdminController {
         timestamp: new Date(),
         metadata: metadata || {}
       });
-      
+
       res.json({
         success: true,
         message: 'Interaction tracked successfully',
@@ -910,7 +911,7 @@ export class AdminController {
       }
 
       await userTrackingService.trackPageView(sessionId, page, timeSpent || 0, scrollDepth || 0);
-      
+
       res.json({
         success: true,
         message: 'Page view tracked successfully',
@@ -988,7 +989,7 @@ export class AdminController {
         success: success !== false,
         timestamp: new Date()
       });
-      
+
       res.json({
         success: true,
         message: 'Feature usage tracked successfully',

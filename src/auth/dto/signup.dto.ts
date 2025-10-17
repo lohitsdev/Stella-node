@@ -1,5 +1,6 @@
-import { IsString, IsEmail, IsNotEmpty, MinLength, IsOptional, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
+import { IsString, IsEmail, IsNotEmpty, MinLength, IsOptional, IsEnum } from 'class-validator';
+
 import 'reflect-metadata';
 import { UserRole } from '../enums/auth.enum.js';
 

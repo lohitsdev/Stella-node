@@ -1,10 +1,12 @@
 import fs from 'fs/promises';
-import path from 'path';
 import os from 'os';
+import path from 'path';
+
 import { ObjectId } from 'mongodb';
-import { configService } from '../../services/config.service.js';
+
 import { mongodb } from '../../database/mongodb.js';
 import { pinecone } from '../../database/pinecone.js';
+import { configService } from '../../services/config.service.js';
 import type {
   IEnvironmentVariable,
   IEnvironmentUpdate,
@@ -21,6 +23,7 @@ import type {
   IPerformanceMetrics,
   IUserAnalytics
 } from '../interfaces/admin.interface.js';
+
 import { userTrackingService } from './user-tracking.service.js';
 
 export class AdminService {
@@ -128,13 +131,6 @@ export class AdminService {
         description: 'OpenAI API key',
         isSecret: true,
         category: 'api'
-      },
-      {
-        key: 'HUME_API_KEY',
-        value: this.maskSensitive(process.env.HUME_API_KEY || ''),
-        description: 'Hume AI API key',
-        isSecret: true,
-        category: 'api'
       }
     ];
 
@@ -168,7 +164,7 @@ export class AdminService {
         }
       }
 
-      await fs.writeFile(envPath, envContent.trim() + '\n');
+      await fs.writeFile(envPath, `${envContent.trim()}\n`);
 
       // Log the update
       this.addSystemLog('info', `Environment variables updated: ${updates.map(u => u.key).join(', ')}`);
@@ -351,52 +347,52 @@ export class AdminService {
   async getUserStats(): Promise<IUserStats> {
     try {
       const usersCollection = mongodb.getCollection('users');
-      
+
       // Get total user count
       const totalUsers = await usersCollection.countDocuments();
-      
+
       // Get users by role
-      const roleAggregation = await usersCollection.aggregate([
-        { $group: { _id: '$role', count: { $sum: 1 } } }
-      ]).toArray();
-      
+      const roleAggregation = await usersCollection
+        .aggregate([{ $group: { _id: '$role', count: { $sum: 1 } } }])
+        .toArray();
+
       const usersByRole: Record<string, number> = {};
       roleAggregation.forEach(item => {
         usersByRole[item._id] = item.count;
       });
-      
+
       // Get users by status
-      const statusAggregation = await usersCollection.aggregate([
-        { $group: { _id: '$status', count: { $sum: 1 } } }
-      ]).toArray();
-      
+      const statusAggregation = await usersCollection
+        .aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+        .toArray();
+
       const usersByStatus: Record<string, number> = {};
       statusAggregation.forEach(item => {
         usersByStatus[item._id] = item.count;
       });
-      
+
       // Get users by provider
-      const providerAggregation = await usersCollection.aggregate([
-        { $group: { _id: '$provider', count: { $sum: 1 } } }
-      ]).toArray();
-      
+      const providerAggregation = await usersCollection
+        .aggregate([{ $group: { _id: '$provider', count: { $sum: 1 } } }])
+        .toArray();
+
       const usersByProvider: Record<string, number> = {};
       providerAggregation.forEach(item => {
         usersByProvider[item._id] = item.count;
       });
-      
+
       // Get recent registrations (last 24 hours)
       const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const recentRegistrations = await usersCollection.countDocuments({
         createdAt: { $gte: yesterday }
       });
-      
+
       // Get active users (logged in within last 7 days)
       const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
       const activeUsers = await usersCollection.countDocuments({
         lastLogin: { $gte: weekAgo }
       });
-      
+
       return {
         totalUsers,
         usersByRole,
@@ -414,11 +410,15 @@ export class AdminService {
   /**
    * Get paginated list of users
    */
-  async getUsers(page: number = 1, limit: number = 50, filters?: any): Promise<{ users: IUserListItem[]; total: number; page: number; totalPages: number }> {
+  async getUsers(
+    page: number = 1,
+    limit: number = 50,
+    filters?: any
+  ): Promise<{ users: IUserListItem[]; total: number; page: number; totalPages: number }> {
     try {
       const usersCollection = mongodb.getCollection('users');
       const skip = (page - 1) * limit;
-      
+
       // Build query filters
       const query: any = {};
       if (filters?.role) query.role = filters.role;
@@ -429,7 +429,7 @@ export class AdminService {
           { email: { $regex: filters.search, $options: 'i' } }
         ];
       }
-      
+
       // Get users with pagination
       const users = await usersCollection
         .find(query, { projection: { password: 0, refreshTokens: 0 } })
@@ -437,10 +437,10 @@ export class AdminService {
         .skip(skip)
         .limit(limit)
         .toArray();
-      
+
       const total = await usersCollection.countDocuments(query);
       const totalPages = Math.ceil(total / limit);
-      
+
       const userList: IUserListItem[] = users.map(user => ({
         _id: user._id?.toString() || '',
         name: user.name,
@@ -453,7 +453,7 @@ export class AdminService {
         loginAttempts: user.loginAttempts,
         createdAt: user.createdAt
       }));
-      
+
       return { users: userList, total, page, totalPages };
     } catch (error) {
       this.addSystemLog('error', `Failed to get users: ${error}`);
@@ -476,12 +476,12 @@ export class AdminService {
       ...event,
       timestamp: new Date()
     });
-    
+
     // Keep only last 500 security events
     if (this.securityEvents.length > 500) {
       this.securityEvents = this.securityEvents.slice(-500);
     }
-    
+
     // Log security event
     this.addSystemLog('warn', `Security Event: ${event.type} for ${event.email}`, event);
   }
@@ -492,7 +492,7 @@ export class AdminService {
   async getAIUsageStats(): Promise<IAIUsageStats> {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     // These would be more sophisticated in production with actual tracking
     return {
       openai: {
@@ -500,11 +500,6 @@ export class AdminService {
         totalCost: this.aiUsageTracking.get('openai_total_cost') || 0,
         requestsToday: this.aiUsageTracking.get('openai_requests_today') || 0,
         averageTokensPerRequest: this.aiUsageTracking.get('openai_avg_tokens') || 0
-      },
-      hume: {
-        totalCalls: this.aiUsageTracking.get('hume_total_calls') || 0,
-        eventsProcessed: this.aiUsageTracking.get('hume_events_processed') || 0,
-        callsToday: this.aiUsageTracking.get('hume_calls_today') || 0
       },
       pinecone: {
         totalQueries: this.aiUsageTracking.get('pinecone_total_queries') || 0,
@@ -517,16 +512,16 @@ export class AdminService {
   /**
    * Track AI service usage
    */
-  trackAIUsage(service: 'openai' | 'hume' | 'pinecone', type: string, data: any): void {
+  trackAIUsage(service: 'openai' | 'pinecone', type: string, data: any): void {
     const key = `${service}_${type}`;
     const current = this.aiUsageTracking.get(key) || 0;
-    
+
     if (typeof data === 'number') {
       this.aiUsageTracking.set(key, current + data);
     } else {
       this.aiUsageTracking.set(key, current + 1);
     }
-    
+
     // Track daily statistics
     const today = new Date().toDateString();
     const dailyKey = `${service}_${type}_${today}`;
@@ -541,14 +536,14 @@ export class AdminService {
     try {
       const db = mongodb.getDatabase();
       const admin = db.admin();
-      
+
       // Get database stats
       const dbStats = await admin.command({ dbStats: 1 });
-      
+
       // Get collection stats
       const collections = await db.listCollections().toArray();
       const collectionStats = [];
-      
+
       for (const collection of collections) {
         try {
           const stats = await db.command({ collStats: collection.name });
@@ -570,7 +565,7 @@ export class AdminService {
           });
         }
       }
-      
+
       return {
         collections: collectionStats,
         totalSize: dbStats.dataSize || 0,
@@ -588,22 +583,22 @@ export class AdminService {
   async getPerformanceMetrics(): Promise<IPerformanceMetrics> {
     // Calculate endpoint performance from tracked data
     const endpoints: IPerformanceMetrics['endpoints'] = [];
-    
+
     for (const [endpoint, count] of this.requestMetrics.entries()) {
       const perfData = this.performanceData.get(endpoint) || [];
       const responseTimes = perfData.map(d => d.responseTime);
-      
-      const averageResponseTime = responseTimes.length > 0 
-        ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length 
-        : 0;
-      
-      const p95ResponseTime = responseTimes.length > 0
-        ? responseTimes.sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)] || 0
-        : 0;
-      
+
+      const averageResponseTime =
+        responseTimes.length > 0 ? responseTimes.reduce((sum, time) => sum + time, 0) / responseTimes.length : 0;
+
+      const p95ResponseTime =
+        responseTimes.length > 0
+          ? responseTimes.sort((a, b) => a - b)[Math.floor(responseTimes.length * 0.95)] || 0
+          : 0;
+
       const errorCount = this.errorLogs.filter(log => log.endpoint === endpoint).length;
       const errorRate = count > 0 ? (errorCount / count) * 100 : 0;
-      
+
       endpoints.push({
         path: endpoint,
         method: 'GET', // Simplified - in production, track method separately
@@ -613,10 +608,10 @@ export class AdminService {
         p95ResponseTime
       });
     }
-    
+
     // Sort by request count
     endpoints.sort((a, b) => b.requestCount - a.requestCount);
-    
+
     return {
       endpoints: endpoints.slice(0, 20), // Top 20 endpoints
       slowestQueries: [] // Placeholder - would need MongoDB profiling in production
@@ -630,10 +625,10 @@ export class AdminService {
     if (!this.performanceData.has(endpoint)) {
       this.performanceData.set(endpoint, []);
     }
-    
+
     const data = this.performanceData.get(endpoint)!;
     data.push({ timestamp: new Date(), responseTime });
-    
+
     // Keep only last 1000 measurements per endpoint
     if (data.length > 1000) {
       this.performanceData.set(endpoint, data.slice(-1000));
@@ -648,14 +643,14 @@ export class AdminService {
       const usersCollection = mongodb.getCollection('users');
       const result = await usersCollection.updateOne(
         { _id: new ObjectId(userId) },
-        { 
-          $set: { 
-            status, 
-            updatedAt: new Date() 
-          } 
+        {
+          $set: {
+            status,
+            updatedAt: new Date()
+          }
         }
       );
-      
+
       if (result.matchedCount > 0) {
         this.addSystemLog('info', `User status updated: ${userId} -> ${status}`);
         this.addSecurityEvent({
@@ -681,7 +676,7 @@ export class AdminService {
       // Get user details
       const usersCollection = mongodb.getCollection('users');
       const user = await usersCollection.findOne({ _id: new ObjectId(userId) });
-      
+
       if (!user) {
         throw new Error('User not found');
       }
@@ -740,14 +735,14 @@ export class AdminService {
   private async getUserChatActivity(email: string): Promise<IUserAnalytics['chatActivity']> {
     try {
       const chatCollection = mongodb.getCollection('chat_sessions');
-      
+
       // Get all chat sessions for the user
       const sessions = await chatCollection.find({ email }).toArray();
-      
+
       // Calculate metrics
       const totalSessions = sessions.length;
       const activeSessions = sessions.filter(s => s.status === 'active').length;
-      
+
       // Calculate average session duration
       const completedSessions = sessions.filter(s => s.ended_at);
       const totalDuration = completedSessions.reduce((sum, session) => {
@@ -755,27 +750,28 @@ export class AdminService {
         return sum + duration;
       }, 0);
       const averageSessionDuration = completedSessions.length > 0 ? totalDuration / completedSessions.length : 0;
-      
+
       // Count total messages (if you store them)
       const totalMessages = sessions.reduce((sum, session) => sum + (session.message_count || 0), 0);
-      
+
       // Get last activity
-      const lastActivity = sessions.length > 0 
-        ? new Date(Math.max(...sessions.map(s => new Date(s.updated_at || s.created_at).getTime())))
-        : new Date(0);
-      
+      const lastActivity =
+        sessions.length > 0
+          ? new Date(Math.max(...sessions.map(s => new Date(s.updated_at || s.created_at).getTime())))
+          : new Date(0);
+
       // Sessions by month (last 12 months)
       const now = new Date();
       const sessionsByMonth = [];
       for (let i = 11; i >= 0; i--) {
         const monthDate = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const nextMonth = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-        
+
         const count = sessions.filter(s => {
           const sessionDate = new Date(s.created_at);
           return sessionDate >= monthDate && sessionDate < nextMonth;
         }).length;
-        
+
         sessionsByMonth.push({
           month: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           count
@@ -811,38 +807,28 @@ export class AdminService {
       // For now, we'll calculate based on chat sessions and summaries
       const chatCollection = mongodb.getCollection('chat_sessions');
       const summaryCollection = mongodb.getCollection('summaries');
-      
+
       const userSessions = await chatCollection.find({ email }).toArray();
       const userSummaries = await summaryCollection.find({ email }).toArray();
-      
+
       // Estimate AI usage based on sessions and summaries
       const openaiRequests = userSummaries.length; // Each summary is an OpenAI request
-      const humeApiCalls = userSessions.filter(s => s.hume_data).length;
-      const emotionAnalysisCount = userSessions.reduce((sum, session) => {
-        return sum + (session.hume_data?.total_events || 0);
-      }, 0);
-      
+
       // Estimate tokens (rough calculation)
       const estimatedTokensPerSummary = 500;
       const openaiTokens = openaiRequests * estimatedTokensPerSummary;
       const openaiCost = openaiTokens * 0.00003; // Rough cost estimation
-      
+
       return {
         openaiRequests,
         openaiTokens,
-        openaiCost,
-        humeApiCalls,
-        humeEventsProcessed: emotionAnalysisCount,
-        emotionAnalysisCount
+        openaiCost
       };
     } catch (error) {
       return {
         openaiRequests: 0,
         openaiTokens: 0,
-        openaiCost: 0,
-        humeApiCalls: 0,
-        humeEventsProcessed: 0,
-        emotionAnalysisCount: 0
+        openaiCost: 0
       };
     }
   }
@@ -853,39 +839,48 @@ export class AdminService {
   private async getUserVectorActivity(email: string): Promise<IUserAnalytics['vectorActivity']> {
     try {
       const toolQueriesCollection = mongodb.getCollection('tool_queries');
-      
+
       const userQueries = await toolQueriesCollection.find({ user_email: email }).toArray();
-      
+
       const searchQueries = userQueries.length;
       const embeddingsGenerated = userQueries.filter(q => q.embedding_generated).length;
-      
+
       // Calculate average search latency
       const queriesWithTiming = userQueries.filter(q => q.response_time);
-      const averageSearchLatency = queriesWithTiming.length > 0
-        ? queriesWithTiming.reduce((sum, q) => sum + q.response_time, 0) / queriesWithTiming.length
-        : 0;
-      
+      const averageSearchLatency =
+        queriesWithTiming.length > 0
+          ? queriesWithTiming.reduce((sum, q) => sum + q.response_time, 0) / queriesWithTiming.length
+          : 0;
+
       // Get top search terms
       const searchTerms = userQueries.map(q => q.query_text || q.search_term).filter(Boolean);
-      const termCounts = searchTerms.reduce((acc, term) => {
-        acc[term] = (acc[term] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
+      const termCounts = searchTerms.reduce(
+        (acc, term) => {
+          acc[term] = (acc[term] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
       const topSearchTerms = Object.entries(termCounts)
-        .sort(([,a], [,b]) => (b as number) - (a as number))
+        .sort(([, a], [, b]) => (b as number) - (a as number))
         .slice(0, 10)
         .map(([term, count]) => ({ term, count: count as number }));
-      
+
       // Searches by category (if available)
       const categories = userQueries.map(q => q.category || 'general').filter(Boolean);
-      const categoryCounts = categories.reduce((acc, cat) => {
-        acc[cat] = (acc[cat] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      const searchesByCategory = Object.entries(categoryCounts)
-        .map(([category, count]) => ({ category, count: count as number }));
+      const categoryCounts = categories.reduce(
+        (acc, cat) => {
+          acc[cat] = (acc[cat] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const searchesByCategory = Object.entries(categoryCounts).map(([category, count]) => ({
+        category,
+        count: count as number
+      }));
 
       return {
         searchQueries,
@@ -911,27 +906,28 @@ export class AdminService {
   private async getUserSummaries(email: string): Promise<IUserAnalytics['summaries']> {
     try {
       const summaryCollection = mongodb.getCollection('summaries');
-      
+
       const userSummaries = await summaryCollection.find({ email }).toArray();
-      
+
       const totalSummaries = userSummaries.length;
-      
+
       // Calculate average summary length
       const summaryLengths = userSummaries.map(s => s.summary?.length || 0);
-      const averageSummaryLength = summaryLengths.length > 0
-        ? summaryLengths.reduce((sum, len) => sum + len, 0) / summaryLengths.length
-        : 0;
-      
+      const averageSummaryLength =
+        summaryLengths.length > 0 ? summaryLengths.reduce((sum, len) => sum + len, 0) / summaryLengths.length : 0;
+
       // Summaries by type (if available)
       const types = userSummaries.map(s => s.type || 'conversation').filter(Boolean);
-      const typeCounts = types.reduce((acc, type) => {
-        acc[type] = (acc[type] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
-      
-      const summariesByType = Object.entries(typeCounts)
-        .map(([type, count]) => ({ type, count: count as number }));
-      
+      const typeCounts = types.reduce(
+        (acc, type) => {
+          acc[type] = (acc[type] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
+
+      const summariesByType = Object.entries(typeCounts).map(([type, count]) => ({ type, count: count as number }));
+
       // Recent summaries (last 10)
       const recentSummaries = userSummaries
         .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
@@ -969,32 +965,33 @@ export class AdminService {
       // For now, we'll estimate based on available data
       const chatCollection = mongodb.getCollection('chat_sessions');
       const toolQueriesCollection = mongodb.getCollection('tool_queries');
-      
+
       const userSessions = await chatCollection.find({ email }).toArray();
       const userQueries = await toolQueriesCollection.find({ user_email: email }).toArray();
-      
+
       const totalApiCalls = userSessions.length + userQueries.length;
-      
+
       // Estimate average response time
       const queriesWithTiming = userQueries.filter(q => q.response_time);
-      const averageResponseTime = queriesWithTiming.length > 0
-        ? queriesWithTiming.reduce((sum, q) => sum + q.response_time, 0) / queriesWithTiming.length
-        : 0;
-      
+      const averageResponseTime =
+        queriesWithTiming.length > 0
+          ? queriesWithTiming.reduce((sum, q) => sum + q.response_time, 0) / queriesWithTiming.length
+          : 0;
+
       // Error rate (rough estimation)
       const failedSessions = userSessions.filter(s => s.status === 'error').length;
       const errorRate = totalApiCalls > 0 ? (failedSessions / totalApiCalls) * 100 : 0;
-      
+
       // Usage pattern by hour (last 30 days)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const recentSessions = userSessions.filter(s => new Date(s.created_at) >= thirtyDaysAgo);
-      
+
       const usagePattern = Array.from({ length: 24 }, (_, hour) => {
         const requests = recentSessions.filter(s => new Date(s.created_at).getHours() === hour).length;
         return { hour, requests };
       });
-      
-      const peakUsageHour = usagePattern.reduce((peak, current) => 
+
+      const peakUsageHour = usagePattern.reduce((peak, current) =>
         current.requests > peak.requests ? current : peak
       ).hour;
 
@@ -1024,11 +1021,11 @@ export class AdminService {
   private async getUserTimeline(email: string): Promise<IUserAnalytics['timeline']> {
     try {
       const timeline: IUserAnalytics['timeline'] = [];
-      
+
       // Get chat sessions
       const chatCollection = mongodb.getCollection('chat_sessions');
       const userSessions = await chatCollection.find({ email }).sort({ created_at: -1 }).limit(50).toArray();
-      
+
       userSessions.forEach(session => {
         timeline.push({
           timestamp: new Date(session.created_at),
@@ -1038,7 +1035,7 @@ export class AdminService {
           duration: session.duration,
           success: session.status !== 'error'
         });
-        
+
         if (session.ended_at) {
           timeline.push({
             timestamp: new Date(session.ended_at),
@@ -1049,11 +1046,11 @@ export class AdminService {
           });
         }
       });
-      
+
       // Get summaries
       const summaryCollection = mongodb.getCollection('summaries');
       const userSummaries = await summaryCollection.find({ email }).sort({ created_at: -1 }).limit(20).toArray();
-      
+
       userSummaries.forEach(summary => {
         timeline.push({
           timestamp: new Date(summary.created_at),
@@ -1063,11 +1060,15 @@ export class AdminService {
           success: true
         });
       });
-      
+
       // Get search queries
       const toolQueriesCollection = mongodb.getCollection('tool_queries');
-      const userQueries = await toolQueriesCollection.find({ user_email: email }).sort({ created_at: -1 }).limit(30).toArray();
-      
+      const userQueries = await toolQueriesCollection
+        .find({ user_email: email })
+        .sort({ created_at: -1 })
+        .limit(30)
+        .toArray();
+
       userQueries.forEach(query => {
         timeline.push({
           timestamp: new Date(query.created_at),
@@ -1082,7 +1083,7 @@ export class AdminService {
       // Get user interactions from tracking service
       const interactionsCollection = mongodb.getCollection('user_interactions');
       const userInteractions = await interactionsCollection.find({ email }).sort({ timestamp: -1 }).limit(50).toArray();
-      
+
       userInteractions.forEach(interaction => {
         timeline.push({
           timestamp: new Date(interaction.timestamp),
@@ -1097,7 +1098,7 @@ export class AdminService {
       // Get feature usage from tracking service
       const featureCollection = mongodb.getCollection('user_feature_usage');
       const userFeatures = await featureCollection.find({ email }).sort({ timestamp: -1 }).limit(30).toArray();
-      
+
       userFeatures.forEach(feature => {
         timeline.push({
           timestamp: new Date(feature.timestamp),
@@ -1108,10 +1109,10 @@ export class AdminService {
           success: feature.success
         });
       });
-      
+
       // Sort timeline by timestamp (most recent first)
       timeline.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-      
+
       return timeline.slice(0, 200); // Return last 200 activities
     } catch (error) {
       return [];
@@ -1129,30 +1130,29 @@ export class AdminService {
       const tasksCompleted = features.filter(f => f.success && f.action === 'complete').length;
       const totalTasks = features.filter(f => f.action === 'complete' || f.action === 'cancel').length;
       const errorCount = features.filter(f => !f.success).length;
-      
+
       const completedTasks = features.filter(f => f.success && f.duration);
-      const avgTaskTime = completedTasks.length > 0 
-        ? completedTasks.reduce((sum, t) => sum + (t.duration || 0), 0) / completedTasks.length 
-        : 0;
+      const avgTaskTime =
+        completedTasks.length > 0
+          ? completedTasks.reduce((sum, t) => sum + (t.duration || 0), 0) / completedTasks.length
+          : 0;
 
       const efficiency = totalTasks > 0 ? (tasksCompleted / totalTasks) * 100 : 0;
 
       // Learning curve (proficiency over time)
       const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const recentFeatures = features.filter(f => new Date(f.timestamp) >= thirtyDaysAgo);
-      
+
       const learningCurve = [];
       for (let i = 29; i >= 0; i--) {
         const date = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
         const dayStr = date.toISOString().split('T')[0];
-        const dayFeatures = recentFeatures.filter(f => 
-          new Date(f.timestamp).toISOString().split('T')[0] === dayStr
-        );
-        
+        const dayFeatures = recentFeatures.filter(f => new Date(f.timestamp).toISOString().split('T')[0] === dayStr);
+
         const daySuccess = dayFeatures.filter(f => f.success).length;
         const dayTotal = dayFeatures.length;
         const proficiency = dayTotal > 0 ? (daySuccess / dayTotal) * 100 : 0;
-        
+
         learningCurve.push({
           date: dayStr || '',
           proficiency

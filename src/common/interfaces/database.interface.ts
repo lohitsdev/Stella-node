@@ -1,5 +1,5 @@
-import type { Db, Collection, MongoClient, Document } from 'mongodb';
 import type { Pinecone } from '@pinecone-database/pinecone';
+import type { Db, Collection, MongoClient, Document } from 'mongodb';
 
 /**
  * Interface for MongoDB connection configuration

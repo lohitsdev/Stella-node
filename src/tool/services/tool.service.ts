@@ -1,8 +1,9 @@
-import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
-import type { IToolQuery, IToolResult, IToolService } from '../interfaces/tool.interface.js';
-import { mongodb } from '../../database/mongodb.js';
 import { ObjectId } from 'mongodb';
+
 import { searchService } from '../../chat/services/search.service.js';
+import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
+import { mongodb } from '../../database/mongodb.js';
+import type { IToolQuery, IToolResult, IToolService } from '../interfaces/tool.interface.js';
 
 /**
  * Service for handling tool queries and processing
@@ -20,19 +21,25 @@ export class ToolService implements IToolService {
 
       // Regular query processing
       console.log(`⚡ SEARCHING PINECONE for user: ${queryData.email}`);
-      
+
       // Search user's conversations (latest first)
       const userSearchResult = await searchService.searchUserConversations(queryData.email, undefined, 10);
-      console.log(`📊 USER CONVERSATIONS FOUND: ${userSearchResult.success ? userSearchResult.data?.results?.length || 0 : 0}`);
-      
+      console.log(
+        `📊 USER CONVERSATIONS FOUND: ${userSearchResult.success ? userSearchResult.data?.results?.length || 0 : 0}`
+      );
+
       // Semantic search with query (RELEVANCE FILTERED - minimum score 0.2)
       const semanticSearchResult = await searchService.searchConversations(queryData.query, queryData.email, 5, 0.2);
-      console.log(`🔍 SEMANTIC SEARCH RESULTS: ${semanticSearchResult.success ? semanticSearchResult.data?.results?.length || 0 : 0}`);
-      
+      console.log(
+        `🔍 SEMANTIC SEARCH RESULTS: ${semanticSearchResult.success ? semanticSearchResult.data?.results?.length || 0 : 0}`
+      );
+
       if (semanticSearchResult.success && semanticSearchResult.data?.results?.length === 0) {
-        console.log(`💡 No relevant results found (score < 0.2). Query "${queryData.query}" might not match any conversations.`);
+        console.log(
+          `💡 No relevant results found (score < 0.2). Query "${queryData.query}" might not match any conversations.`
+        );
       }
-      
+
       // Log detailed results
       if (userSearchResult.success && userSearchResult.data?.results) {
         console.log(`👤 USER'S CONVERSATIONS (${userSearchResult.data.results.length}):`);
@@ -41,7 +48,7 @@ export class ToolService implements IToolService {
           console.log(`     Summary: "${conv.summary.substring(0, 100)}..."`);
         });
       }
-      
+
       if (semanticSearchResult.success && semanticSearchResult.data?.results) {
         console.log(`🎯 SEMANTIC SEARCH MATCHES (${semanticSearchResult.data.results.length}):`);
         semanticSearchResult.data.results.forEach((match: any, i: number) => {
@@ -65,7 +72,7 @@ export class ToolService implements IToolService {
       const toolResult: Omit<IToolResult, '_id'> = {
         query: queryData.query,
         email: queryData.email,
-        result: result,
+        result,
         processed_at: new Date(),
         metadata: queryData.metadata || {},
         createdAt: new Date(),
@@ -85,7 +92,6 @@ export class ToolService implements IToolService {
         message: 'Tool query processed successfully',
         timestamp: new Date()
       };
-
     } catch (error: any) {
       console.error('❌ Failed to process tool query:', error);
       return {
@@ -104,11 +110,7 @@ export class ToolService implements IToolService {
       console.log(`📋 Fetching query history for: ${email}`);
 
       const collection = await mongodb.getCollection<IToolResult>(this.collectionName);
-      const queries = await collection
-        .find({ email })
-        .sort({ createdAt: -1 })
-        .limit(50)
-        .toArray();
+      const queries = await collection.find({ email }).sort({ createdAt: -1 }).limit(50).toArray();
 
       return {
         success: true,
@@ -116,7 +118,6 @@ export class ToolService implements IToolService {
         message: `Found ${queries.length} queries for user`,
         timestamp: new Date()
       };
-
     } catch (error: any) {
       console.error('❌ Failed to fetch query history:', error);
       return {
@@ -159,7 +160,6 @@ export class ToolService implements IToolService {
         message: 'Query result retrieved successfully',
         timestamp: new Date()
       };
-
     } catch (error: any) {
       console.error('❌ Failed to fetch query result:', error);
       return {

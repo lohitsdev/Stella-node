@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+dist/
+build/
+*.tsbuildinfo
+
+# Environment files
+.env*
+
+# Logs
+logs/
+*.log
+
+# Coverage
+coverage/
+.nyc_output
+
+# Cache
+.eslintcache
+.cache/
+
+# Temporary files
+tmp/
+temp/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Documentation (optional - you might want to lint these)
+*.md

@@ -8,7 +8,17 @@ export const UserSchema = {
   validator: {
     $jsonSchema: {
       bsonType: 'object',
-      required: ['firstName', 'lastName', 'email', 'password', 'role', 'status', 'provider', 'emailVerified', 'createdAt'],
+      required: [
+        'firstName',
+        'lastName',
+        'email',
+        'password',
+        'role',
+        'status',
+        'provider',
+        'emailVerified',
+        'createdAt'
+      ],
       properties: {
         firstName: {
           bsonType: 'string',
@@ -131,7 +141,7 @@ export const UserSchema = {
  */
 export const createUserIndexes = async (collection: any) => {
   await Promise.all(
-    UserSchema.indexes.map(index => 
+    UserSchema.indexes.map(index =>
       collection.createIndex(index.key, {
         unique: index.unique,
         sparse: index.sparse

@@ -1,11 +1,11 @@
 import type { Request, Response } from 'express';
+
 import { searchService } from '../services/search.service.js';
 
 export class SearchController {
-
   /**
    * Search conversations by semantic similarity
-   * 
+   *
    * @swagger
    * /api/chat/search:
    *   get:
@@ -84,19 +84,14 @@ export class SearchController {
       }
 
       const topK = Math.min(Math.max(parseInt(limit as string) || 5, 1), 20);
-      
-      const result = await searchService.searchConversations(
-        query, 
-        email as string | undefined, 
-        topK
-      );
+
+      const result = await searchService.searchConversations(query, email as string | undefined, topK);
 
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(500).json(result);
       }
-
     } catch (error: any) {
       console.error('❌ Search endpoint error:', error);
       res.status(500).json({
@@ -109,7 +104,7 @@ export class SearchController {
 
   /**
    * Get all conversations for a specific user
-   * 
+   *
    * @swagger
    * /api/chat/search/user/{email}:
    *   get:
@@ -158,19 +153,14 @@ export class SearchController {
       }
 
       const topK = Math.min(Math.max(parseInt(limit as string) || 10, 1), 50);
-      
-      const result = await searchService.searchUserConversations(
-        email, 
-        query as string | undefined, 
-        topK
-      );
+
+      const result = await searchService.searchUserConversations(email, query as string | undefined, topK);
 
       if (result.success) {
         res.status(200).json(result);
       } else {
         res.status(500).json(result);
       }
-
     } catch (error: any) {
       console.error('❌ User search endpoint error:', error);
       res.status(500).json({

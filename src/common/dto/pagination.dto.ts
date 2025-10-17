@@ -1,5 +1,6 @@
-import { IsOptional, IsNumber, IsString, IsEnum, Min, Max } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
+import { IsOptional, IsNumber, IsString, IsEnum, Min, Max } from 'class-validator';
+
 import { SortOrder } from '../enums/app.enum.js';
 
 /**

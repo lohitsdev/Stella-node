@@ -12,13 +12,11 @@ export interface IConversationSummary extends Document {
   metadata: {
     total_events: number;
     conversation_duration?: number;
-    hume_emotions_count: number;
     summary_generated_at: Date;
     openai_model: string;
     tokens_used?: number;
   };
   raw_data?: {
-    hume_chat_id: string;
     original_events_count: number;
   };
   createdAt: Date;
@@ -32,7 +30,6 @@ export interface ICreateSummary {
   chat_id: string;
   email: string;
   user_id?: string | undefined;
-  hume_data: any;
   conversation_events: any[];
 }
 

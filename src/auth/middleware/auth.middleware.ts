@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
-import { authService } from '../services/auth.service.js';
+
 import { HttpStatus } from '../../common/enums/app.enum.js';
+import { authService } from '../services/auth.service.js';
 
 /**
  * Extended Request interface to include user data
@@ -16,15 +17,11 @@ interface AuthenticatedRequest extends Request {
 /**
  * Authentication middleware to protect routes
  */
-export const authMiddleware = async (
-  req: AuthenticatedRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const authMiddleware = async (req: AuthenticatedRequest, res: Response, next: NextFunction): Promise<void> => {
   try {
     const authHeader = req.headers.authorization;
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!authHeader?.startsWith('Bearer ')) {
       res.status(HttpStatus.UNAUTHORIZED).json({
         success: false,
         error: 'Access token is required',

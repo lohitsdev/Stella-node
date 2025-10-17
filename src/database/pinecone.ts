@@ -1,6 +1,7 @@
 import { Pinecone } from '@pinecone-database/pinecone';
-import { configService } from '../services/config.service.js';
+
 import type { IPineconeOperations, IDatabaseStatus } from '../common/interfaces/database.interface.js';
+import { configService } from '../services/config.service.js';
 
 export class PineconeConnection implements IPineconeOperations {
   private client: Pinecone | null = null;
@@ -13,7 +14,7 @@ export class PineconeConnection implements IPineconeOperations {
     }
 
     this.client = new Pinecone({
-      apiKey: pineconeConfig.apiKey,
+      apiKey: pineconeConfig.apiKey
     });
   }
 
@@ -43,7 +44,11 @@ export class PineconeConnection implements IPineconeOperations {
     return this.client.index(name);
   }
 
-  async createIndex(indexName: string, dimension: number, metric: 'cosine' | 'euclidean' | 'dotproduct' = 'cosine'): Promise<void> {
+  async createIndex(
+    indexName: string,
+    dimension: number,
+    metric: 'cosine' | 'euclidean' | 'dotproduct' = 'cosine'
+  ): Promise<void> {
     if (!this.client) {
       throw new Error('Pinecone client not initialized');
     }

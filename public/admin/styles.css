@@ -1175,7 +1175,6 @@ input:focus,
 .metric-icon.openai { background: #10b981; }
 .metric-icon.tokens { background: #f59e0b; }
 .metric-icon.cost { background: #ef4444; }
-.metric-icon.hume { background: #ec4899; }
 .metric-icon.search { background: #3b82f6; }
 .metric-icon.embeddings { background: #8b5cf6; }
 .metric-icon.latency { background: #10b981; }

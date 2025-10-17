@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
-import { profileService } from '../services/profile.service.js';
+
 import { HttpStatus } from '../../common/enums/app.enum.js';
+import { profileService } from '../services/profile.service.js';
 
 export class ProfileController {
   /**

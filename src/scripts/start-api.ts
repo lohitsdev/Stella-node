@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 /**
  * Start script for Stella API
  * This can be used as an alternative entry point
@@ -24,7 +22,7 @@ process.on('SIGTERM', async () => {
 });
 
 // Handle uncaught exceptions
-process.on('uncaughtException', (error) => {
+process.on('uncaughtException', error => {
   console.error('💥 Uncaught Exception:', error);
   process.exit(1);
 });
@@ -36,7 +34,7 @@ process.on('unhandledRejection', (reason, promise) => {
 });
 
 // Start the application
-app.start().catch((error) => {
+app.start().catch(error => {
   console.error('❌ Failed to start Stella API:', error);
   process.exit(1);
 });

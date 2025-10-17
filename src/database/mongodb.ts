@@ -1,7 +1,8 @@
-import { MongoClient, Db, Collection } from 'mongodb';
-import type { Document } from 'mongodb';
-import { configService } from '../services/config.service.js';
+import { MongoClient } from 'mongodb';
+import type { Document, Db, Collection } from 'mongodb';
+
 import type { IMongoDBOperations, IDatabaseStatus } from '../common/interfaces/database.interface.js';
+import { configService } from '../services/config.service.js';
 
 export class MongoDBConnection implements IMongoDBOperations {
   private client: MongoClient | null = null;

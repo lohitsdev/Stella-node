@@ -1,4 +1,5 @@
 import type { Document, ObjectId } from 'mongodb';
+
 import type { UserRole, AuthStatus, TokenType, AuthProvider } from '../enums/auth.enum.js';
 
 /**

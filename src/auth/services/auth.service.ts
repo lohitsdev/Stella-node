@@ -1,24 +1,27 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { ObjectId } from 'mongodb';
+
+import { HttpStatus } from '../../common/enums/app.enum.js';
+import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
 import { mongodb } from '../../database/mongodb.js';
 import { configService } from '../../services/config.service.js';
 import { validationService } from '../../services/validation.service.js';
-import type { IUser, ICreateUser, IAuthTokens, IJWTPayload, IAuthService } from '../interfaces/auth.interface.js';
-import type { IServiceResponse } from '../../common/interfaces/service.interface.js';
 import { SignupDto, LoginDto } from '../dto/signup.dto.js';
 import { UserRole, AuthStatus, TokenType, AuthProvider } from '../enums/auth.enum.js';
-import { HttpStatus } from '../../common/enums/app.enum.js';
+import type { IUser, ICreateUser, IAuthTokens, IJWTPayload, IAuthService } from '../interfaces/auth.interface.js';
 
 export class AuthService implements IAuthService {
-  private readonly JWT_SECRET: string = process.env.JWT_SECRET || 'stella-dev-secret-key';
-  private readonly JWT_EXPIRES_IN: string | number = process.env.JWT_EXPIRES_IN || '24h';
-  private readonly REFRESH_TOKEN_EXPIRES_IN: string | number = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
+  private readonly authConfig = configService.get('auth');
 
   /**
-   * User signup
+   * Register a new user account
+   * @param signupData - User registration data including email, password, and name
+   * @returns Promise resolving to service response with user data and auth tokens
    */
-  async signup(signupData: SignupDto): Promise<IServiceResponse<{ user: Omit<IUser, 'password'>; tokens: IAuthTokens }>> {
+  async signup(
+    signupData: SignupDto
+  ): Promise<IServiceResponse<{ user: Omit<IUser, 'password'>; tokens: IAuthTokens }>> {
     try {
       // Validate DTO
       const validation = await validationService.validateDto(signupData, SignupDto);
@@ -74,10 +77,7 @@ export class AuthService implements IAuthService {
       const tokens = await this.generateTokens(userId, userData.email, newUser.role || UserRole.USER);
 
       // Update user with refresh token
-      await collection.updateOne(
-        { _id: result.insertedId },
-        { $push: { refreshTokens: tokens.refreshToken } as any }
-      );
+      await collection.updateOne({ _id: result.insertedId }, { $push: { refreshTokens: tokens.refreshToken } as any });
 
       // Return user without password
       const { password, ...userResponse } = userDocument;
@@ -95,7 +95,6 @@ export class AuthService implements IAuthService {
         message: 'User created successfully',
         timestamp: new Date()
       };
-
     } catch (error) {
       console.error('Signup error:', error);
       return {
@@ -107,7 +106,9 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * User login
+   * Authenticate user and generate access tokens
+   * @param loginData - User login credentials including email and password
+   * @returns Promise resolving to service response with user data and auth tokens
    */
   async login(loginData: LoginDto): Promise<IServiceResponse<{ user: Omit<IUser, 'password'>; tokens: IAuthTokens }>> {
     try {
@@ -165,20 +166,17 @@ export class AuthService implements IAuthService {
       if (!isPasswordValid) {
         // Increment login attempts
         const loginAttempts = (user.loginAttempts || 0) + 1;
-        const updateData: any = { 
+        const updateData: any = {
           loginAttempts,
           updatedAt: new Date()
         };
 
-        // Lock account after 5 failed attempts
-        if (loginAttempts >= 5) {
-          updateData.lockUntil = new Date(Date.now() + 30 * 60 * 1000); // 30 minutes
+        // Lock account after max failed attempts
+        if (loginAttempts >= this.authConfig.maxLoginAttempts) {
+          updateData.lockUntil = new Date(Date.now() + this.authConfig.lockoutDurationMs);
         }
 
-        await collection.updateOne(
-          { _id: user._id },
-          { $set: updateData }
-        );
+        await collection.updateOne({ _id: user._id }, { $set: updateData });
 
         return {
           success: false,
@@ -200,7 +198,7 @@ export class AuthService implements IAuthService {
             updatedAt: new Date()
           },
           $unset: {
-            lockUntil: ""
+            lockUntil: ''
           },
           $push: { refreshTokens: tokens.refreshToken } as any
         }
@@ -218,7 +216,6 @@ export class AuthService implements IAuthService {
         message: 'Login successful',
         timestamp: new Date()
       };
-
     } catch (error) {
       console.error('Login error:', error);
       return {
@@ -230,13 +227,15 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * Refresh token
+   * Generate new access and refresh tokens using a valid refresh token
+   * @param refreshToken - Valid refresh token to be exchanged for new tokens
+   * @returns Promise resolving to service response with new auth tokens
    */
   async refreshToken(refreshToken: string): Promise<IServiceResponse<IAuthTokens>> {
     try {
       // Verify refresh token
-      const decoded = jwt.verify(refreshToken, this.JWT_SECRET) as IJWTPayload;
-      
+      const decoded = jwt.verify(refreshToken, this.authConfig.jwtSecret) as IJWTPayload;
+
       if (decoded.tokenType !== TokenType.REFRESH) {
         return {
           success: false,
@@ -246,9 +245,9 @@ export class AuthService implements IAuthService {
       }
 
       const collection = mongodb.getCollection<IUser>('users');
-      const user = await collection.findOne({ 
+      const user = await collection.findOne({
         _id: new ObjectId(decoded.userId),
-        refreshTokens: refreshToken 
+        refreshTokens: refreshToken
       });
 
       if (!user) {
@@ -277,7 +276,6 @@ export class AuthService implements IAuthService {
         message: 'Token refreshed successfully',
         timestamp: new Date()
       };
-
     } catch (error) {
       return {
         success: false,
@@ -288,23 +286,22 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * Logout user
+   * Invalidate user session by removing refresh token
+   * @param userId - The user ID to logout
+   * @param refreshToken - The refresh token to invalidate
+   * @returns Promise resolving to service response indicating logout success
    */
   async logout(userId: string, refreshToken: string): Promise<IServiceResponse<void>> {
     try {
       const collection = mongodb.getCollection<IUser>('users');
-      
-      await collection.updateOne(
-        { _id: new ObjectId(userId) },
-        { $pull: { refreshTokens: refreshToken } as any }
-      );
+
+      await collection.updateOne({ _id: new ObjectId(userId) }, { $pull: { refreshTokens: refreshToken } as any });
 
       return {
         success: true,
         message: 'Logout successful',
         timestamp: new Date()
       };
-
     } catch (error) {
       return {
         success: false,
@@ -315,12 +312,14 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * Validate JWT token
+   * Validate JWT access token and extract payload
+   * @param token - JWT access token to validate
+   * @returns Promise resolving to service response with token payload
    */
   async validateToken(token: string): Promise<IServiceResponse<IJWTPayload>> {
     try {
-      const decoded = jwt.verify(token, this.JWT_SECRET) as IJWTPayload;
-      
+      const decoded = jwt.verify(token, this.authConfig.jwtSecret) as IJWTPayload;
+
       if (decoded.tokenType !== TokenType.ACCESS) {
         return {
           success: false,
@@ -334,7 +333,6 @@ export class AuthService implements IAuthService {
         data: decoded,
         timestamp: new Date()
       };
-
     } catch (error) {
       return {
         success: false,
@@ -345,7 +343,11 @@ export class AuthService implements IAuthService {
   }
 
   /**
-   * Generate JWT tokens
+   * Generate JWT access and refresh tokens for a user
+   * @param userId - The user ID
+   * @param email - The user email
+   * @param role - The user role
+   * @returns Promise resolving to auth tokens object with access and refresh tokens
    */
   private async generateTokens(userId: string, email: string, role: UserRole): Promise<IAuthTokens> {
     const accessPayload: IJWTPayload = {
@@ -362,15 +364,15 @@ export class AuthService implements IAuthService {
       tokenType: TokenType.REFRESH
     };
 
-    const accessOptions: jwt.SignOptions = { 
-      expiresIn: this.JWT_EXPIRES_IN as any
+    const accessOptions: jwt.SignOptions = {
+      expiresIn: this.authConfig.jwtExpiresIn as any
     };
-    const refreshOptions: jwt.SignOptions = { 
-      expiresIn: this.REFRESH_TOKEN_EXPIRES_IN as any
+    const refreshOptions: jwt.SignOptions = {
+      expiresIn: this.authConfig.refreshTokenExpiresIn as any
     };
 
-    const accessToken = jwt.sign(accessPayload, this.JWT_SECRET, accessOptions);
-    const refreshToken = jwt.sign(refreshPayload, this.JWT_SECRET, refreshOptions);
+    const accessToken = jwt.sign(accessPayload, this.authConfig.jwtSecret, accessOptions);
+    const refreshToken = jwt.sign(refreshPayload, this.authConfig.jwtSecret, refreshOptions);
 
     return {
       accessToken,
@@ -380,17 +382,29 @@ export class AuthService implements IAuthService {
     };
   }
 
-  // Placeholder methods to satisfy interface
+  /**
+   * Send password reset email to user
+   * @param email - User email address for password reset
+   */
   async forgotPassword(email: string): Promise<void> {
-    // TODO: Implement forgot password logic
+    // TODO: Implement forgot password logic with email sending
   }
 
+  /**
+   * Reset user password using valid reset token
+   * @param token - Password reset token
+   * @param newPassword - New password to set
+   */
   async resetPassword(token: string, newPassword: string): Promise<void> {
-    // TODO: Implement reset password logic
+    // TODO: Implement reset password logic with token validation
   }
 
+  /**
+   * Verify user email address using verification token
+   * @param token - Email verification token
+   */
   async verifyEmail(token: string): Promise<void> {
-    // TODO: Implement email verification logic
+    // TODO: Implement email verification logic with token validation
   }
 }
 

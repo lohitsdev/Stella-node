@@ -8,6 +8,27 @@ export interface IAppConfig {
 }
 
 /**
+ * Interface for authentication configuration
+ */
+export interface IAuthConfig {
+  maxLoginAttempts: number;
+  lockoutDurationMs: number;
+  jwtSecret: string;
+  jwtExpiresIn: string;
+  refreshTokenExpiresIn: string;
+}
+
+/**
+ * Interface for AI configuration
+ */
+export interface IAIConfig {
+  maxTokenLength: number;
+  embeddingDimensions: number;
+  embeddingModel: string;
+  chatModel: string;
+}
+
+/**
  * Interface for MongoDB configuration
  */
 export interface IMongoConfig {
@@ -39,19 +60,11 @@ export interface IPineconeConfig {
  */
 export interface IConfiguration {
   app: IAppConfig;
+  auth: IAuthConfig;
   mongodb: IMongoConfig;
   pinecone: IPineconeConfig;
-  hume: IHumeConfig;
   openai: IOpenAIConfig;
-}
-
-/**
- * Interface for Hume AI configuration
- */
-export interface IHumeConfig {
-  apiKey: string;
-  secretKey: string;
-  configId: string;
+  ai: IAIConfig;
 }
 
 /**

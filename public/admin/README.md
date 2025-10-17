@@ -84,7 +84,7 @@ http://localhost:3000/admin/
 ```
 Categories:
 ├── Database (MongoDB settings)
-├── API Keys (Pinecone, OpenAI, Hume)
+├── API Keys (Pinecone, OpenAI)
 ├── Application (Port, Environment)
 ├── Security (JWT secrets)
 └── Other (Custom variables)

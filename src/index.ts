@@ -1,6 +1,6 @@
 import StellaApp from './app.js';
 
-console.log("Hello from Stella! 🌟");
+console.log('Hello from Stella! 🌟');
 
 // Initialize and start the Stella API application
 const app = new StellaApp();
@@ -17,7 +17,7 @@ process.on('SIGTERM', async () => {
 });
 
 // Start the application
-app.start().catch((error) => {
+app.start().catch(error => {
   console.error('Failed to start application:', error);
   process.exit(1);
 });

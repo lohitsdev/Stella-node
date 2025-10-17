@@ -40,13 +40,13 @@ export class UserTrackingService {
     try {
       const sessionsCollection = mongodb.getCollection('user_sessions');
       await sessionsCollection.insertOne(session as any);
-      
+
       // Store in memory for quick access
       this.activeSessions.set(sessionId, session);
-      
+
       // Set timeout for session expiry
       this.resetSessionTimeout(sessionId);
-      
+
       return sessionId;
     } catch (error) {
       console.error('Failed to start user session:', error);
@@ -80,7 +80,7 @@ export class UserTrackingService {
 
       // Update time tracking
       await this.updateTimeTracking(session.email, sessionId, session.startTime, endTime, duration);
-      
+
       // Clean up
       this.activeSessions.delete(sessionId);
       const timeout = this.sessionTimeouts.get(sessionId);
@@ -130,7 +130,10 @@ export class UserTrackingService {
   /**
    * Track user interaction
    */
-  async trackInteraction(sessionId: string, interaction: Omit<IUserInteraction, '_id' | 'email' | 'sessionId' | 'createdAt'>): Promise<void> {
+  async trackInteraction(
+    sessionId: string,
+    interaction: Omit<IUserInteraction, '_id' | 'email' | 'sessionId' | 'createdAt'>
+  ): Promise<void> {
     const session = this.activeSessions.get(sessionId);
     if (!session) return;
 
@@ -149,13 +152,13 @@ export class UserTrackingService {
       session.totalInteractions++;
       session.updatedAt = new Date();
 
-              // Update current page view interaction count
-        if (session.pageViews.length > 0) {
-          const currentPageView = session.pageViews[session.pageViews.length - 1];
-          if (currentPageView && currentPageView.page === interaction.page) {
-            currentPageView.interactions++;
-          }
+      // Update current page view interaction count
+      if (session.pageViews.length > 0) {
+        const currentPageView = session.pageViews[session.pageViews.length - 1];
+        if (currentPageView && currentPageView.page === interaction.page) {
+          currentPageView.interactions++;
         }
+      }
 
       const sessionsCollection = mongodb.getCollection('user_sessions');
       await sessionsCollection.updateOne(
@@ -178,7 +181,11 @@ export class UserTrackingService {
   /**
    * Track Pinecone activity
    */
-  async trackPineconeActivity(email: string, sessionId: string, activity: Omit<IUserPineconeActivity, '_id' | 'email' | 'sessionId' | 'createdAt'>): Promise<void> {
+  async trackPineconeActivity(
+    email: string,
+    sessionId: string,
+    activity: Omit<IUserPineconeActivity, '_id' | 'email' | 'sessionId' | 'createdAt'>
+  ): Promise<void> {
     const fullActivity: IUserPineconeActivity = {
       email,
       sessionId,
@@ -197,7 +204,11 @@ export class UserTrackingService {
   /**
    * Track database activity
    */
-  async trackDatabaseActivity(email: string, sessionId: string, activity: Omit<IUserDatabaseActivity, '_id' | 'email' | 'sessionId' | 'createdAt'>): Promise<void> {
+  async trackDatabaseActivity(
+    email: string,
+    sessionId: string,
+    activity: Omit<IUserDatabaseActivity, '_id' | 'email' | 'sessionId' | 'createdAt'>
+  ): Promise<void> {
     const fullActivity: IUserDatabaseActivity = {
       email,
       sessionId,
@@ -216,7 +227,11 @@ export class UserTrackingService {
   /**
    * Track feature usage
    */
-  async trackFeatureUsage(email: string, sessionId: string, usage: Omit<IUserFeatureUsage, '_id' | 'email' | 'sessionId' | 'createdAt'>): Promise<void> {
+  async trackFeatureUsage(
+    email: string,
+    sessionId: string,
+    usage: Omit<IUserFeatureUsage, '_id' | 'email' | 'sessionId' | 'createdAt'>
+  ): Promise<void> {
     const fullUsage: IUserFeatureUsage = {
       email,
       sessionId,
@@ -247,9 +262,10 @@ export class UserTrackingService {
       const totalQueries = activities.filter(a => a.type === 'search').length;
       const totalUpserts = activities.filter(a => a.type === 'upsert').length;
       const avgQueryTime = activities.reduce((sum, a) => sum + a.responseTime, 0) / activities.length;
-      const avgScore = activities
-        .filter(a => a.results && a.results.length > 0)
-        .reduce((sum, a) => sum + (a.results[0]?.score || 0), 0) / Math.max(1, totalQueries);
+      const avgScore =
+        activities
+          .filter(a => a.results && a.results.length > 0)
+          .reduce((sum, a) => sum + (a.results[0]?.score || 0), 0) / Math.max(1, totalQueries);
 
       // Get index stats from Pinecone
       const indexStats = await this.getPineconeIndexStats();
@@ -272,7 +288,7 @@ export class UserTrackingService {
         costAnalysis: {
           queryCost: totalQueries * 0.0004, // Estimated cost per query
           storageCost: indexStats.totalVectorCount * 0.00000001, // Estimated storage cost
-          totalCost: (totalQueries * 0.0004) + (indexStats.totalVectorCount * 0.00000001),
+          totalCost: totalQueries * 0.0004 + indexStats.totalVectorCount * 0.00000001,
           costTrend: [] // Would need historical data
         }
       };
@@ -490,9 +506,15 @@ export class UserTrackingService {
     this.sessionTimeouts.set(sessionId, timeout);
   }
 
-  private async updateTimeTracking(email: string, sessionId: string, startTime: Date, endTime: Date, duration: number): Promise<void> {
+  private async updateTimeTracking(
+    email: string,
+    sessionId: string,
+    startTime: Date,
+    endTime: Date,
+    duration: number
+  ): Promise<void> {
     const date = startTime.toISOString().split('T')[0];
-    
+
     try {
       const timeCollection = mongodb.getCollection('user_time_tracking');
       await timeCollection.updateOne(
@@ -559,7 +581,7 @@ export class UserTrackingService {
 
   private getDaysSinceFirstSession(sessions: any[]): number {
     if (sessions.length === 0) return 1;
-    const firstSession = sessions.reduce((earliest, session) => 
+    const firstSession = sessions.reduce((earliest, session) =>
       session.startTime < earliest.startTime ? session : earliest
     );
     const daysDiff = (Date.now() - new Date(firstSession.startTime).getTime()) / (1000 * 60 * 60 * 24);
@@ -568,11 +590,9 @@ export class UserTrackingService {
 
   private calculateRetentionRate(sessions: any[]): number {
     if (sessions.length < 2) return 0;
-    
-    const uniqueDays = new Set(sessions.map(s => 
-      new Date(s.startTime).toISOString().split('T')[0]
-    ));
-    
+
+    const uniqueDays = new Set(sessions.map(s => new Date(s.startTime).toISOString().split('T')[0]));
+
     const totalDays = this.getDaysSinceFirstSession(sessions);
     return (uniqueDays.size / totalDays) * 100;
   }

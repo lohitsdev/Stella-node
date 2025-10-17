@@ -1,12 +1,14 @@
 import dotenv from 'dotenv';
-import type { 
-  IConfiguration, 
-  IConfigService, 
-  IConfigValidation, 
-  IAppConfig, 
-  IMongoConfig, 
+
+import type {
+  IConfiguration,
+  IConfigService,
+  IConfigValidation,
+  IAppConfig,
+  IAuthConfig,
+  IAIConfig,
+  IMongoConfig,
   IPineconeConfig,
-  IHumeConfig,
   IOpenAIConfig
 } from '../common/interfaces/config.interface.js';
 
@@ -118,6 +120,33 @@ export class ConfigService implements IConfigService {
       }
     }
 
+    // Validate authentication configuration
+    if (!this.config.auth.jwtSecret || this.config.auth.jwtSecret === 'stella-dev-secret-key') {
+      if (this.config.app.nodeEnv === 'production') {
+        errors.push('JWT secret must be set in production (JWT_SECRET)');
+      } else {
+        warnings.push('Using default JWT secret - change for production');
+      }
+    }
+
+    if (this.config.auth.maxLoginAttempts < 1 || this.config.auth.maxLoginAttempts > 20) {
+      warnings.push('Max login attempts should be between 1 and 20');
+    }
+
+    if (this.config.auth.lockoutDurationMs < 60000) {
+      // Less than 1 minute
+      warnings.push('Lockout duration should be at least 1 minute');
+    }
+
+    // Validate AI configuration
+    if (this.config.ai.maxTokenLength < 1000 || this.config.ai.maxTokenLength > 100000) {
+      warnings.push('Max token length should be between 1000 and 100000');
+    }
+
+    if (this.config.ai.embeddingDimensions < 128 || this.config.ai.embeddingDimensions > 4096) {
+      warnings.push('Embedding dimensions should be between 128 and 4096');
+    }
+
     // Warnings for optional but recommended fields
     if (!this.config.pinecone.indexName) {
       warnings.push('Pinecone index name not specified, using default');
@@ -144,6 +173,21 @@ export class ConfigService implements IConfigService {
       nodeEnv: (process.env.NODE_ENV as any) || 'development'
     };
 
+    const auth = {
+      maxLoginAttempts: parseInt(process.env.AUTH_MAX_LOGIN_ATTEMPTS || '5', 10),
+      lockoutDurationMs: parseInt(process.env.AUTH_LOCKOUT_DURATION_MS || '1800000', 10), // 30 minutes
+      jwtSecret: process.env.JWT_SECRET || 'stella-dev-secret-key',
+      jwtExpiresIn: process.env.JWT_EXPIRES_IN || '24h',
+      refreshTokenExpiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN || '7d'
+    };
+
+    const ai = {
+      maxTokenLength: parseInt(process.env.OPENAI_MAX_TOKEN_LENGTH || '8000', 10),
+      embeddingDimensions: parseInt(process.env.OPENAI_EMBEDDING_DIMENSIONS || '1024', 10),
+      embeddingModel: process.env.OPENAI_EMBEDDING_MODEL || 'text-embedding-3-small',
+      chatModel: process.env.OPENAI_CHAT_MODEL || 'gpt-4o-mini'
+    };
+
     const mongodb: IMongoConfig = {
       uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/stella',
       database: process.env.MONGODB_DATABASE || undefined,
@@ -156,32 +200,27 @@ export class ConfigService implements IConfigService {
       }
     };
 
-            const pinecone: IPineconeConfig = {
-          apiKey: process.env.PINECONE_API_KEY || '',
-          environment: process.env.PINECONE_ENVIRONMENT || '',
-          indexName: process.env.PINECONE_INDEX_NAME || 'buddy-app',
-          namespace: process.env.PINECONE_NAMESPACE || 'conversation-namespace',
-          dimension: parseInt(process.env.PINECONE_DIMENSION || '1024', 10),
-          metric: (process.env.PINECONE_METRIC as any) || 'cosine'
-        };
+    const pinecone: IPineconeConfig = {
+      apiKey: process.env.PINECONE_API_KEY || '',
+      environment: process.env.PINECONE_ENVIRONMENT || '',
+      indexName: process.env.PINECONE_INDEX_NAME || 'buddy-app',
+      namespace: process.env.PINECONE_NAMESPACE || 'conversation-namespace',
+      dimension: parseInt(process.env.PINECONE_DIMENSION || '1024', 10),
+      metric: (process.env.PINECONE_METRIC as any) || 'cosine'
+    };
 
-        const hume: IHumeConfig = {
-          apiKey: process.env.HUME_API_KEY || '',
-          secretKey: process.env.HUME_SECRET_KEY || '',
-          configId: process.env.NEXT_PUBLIC_HUME_CONFIG_ID || ''
-        };
+    const openai: IOpenAIConfig = {
+      apiKey: process.env.OPENAI_API_KEY || ''
+    };
 
-        const openai: IOpenAIConfig = {
-          apiKey: process.env.OPENAI_API_KEY || ''
-        };
-
-        return {
-          app,
-          mongodb,
-          pinecone,
-          hume,
-          openai
-        };
+    return {
+      app,
+      auth,
+      mongodb,
+      pinecone,
+      openai,
+      ai
+    };
   }
 }
 

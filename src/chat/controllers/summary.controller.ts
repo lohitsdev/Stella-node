@@ -1,12 +1,12 @@
 import type { Request, Response } from 'express';
-import { summaryService } from '../services/summary.service.js';
+
 import { HttpStatus } from '../../common/enums/app.enum.js';
+import { summaryService } from '../services/summary.service.js';
 
 /**
  * Summary controller for handling conversation summary operations
  */
 export class SummaryController {
-
   /**
    * @swagger
    * /api/chat/summary/{chatId}:

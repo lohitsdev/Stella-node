@@ -1,5 +1,5 @@
-import { IsString, IsNotEmpty, IsNumber, IsEmail, IsUUID, IsOptional, IsObject } from 'class-validator';
 import { Transform, Type } from 'class-transformer';
+import { IsString, IsNotEmpty, IsNumber, IsEmail, IsUUID, IsOptional, IsObject } from 'class-validator';
 import 'reflect-metadata';
 
 /**

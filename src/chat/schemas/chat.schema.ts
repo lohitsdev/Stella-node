@@ -5,22 +5,24 @@ export const ChatSessionSchema = {
   chat_id: { type: 'string', required: true, unique: true },
   email: { type: 'string', required: true },
   user_id: { type: 'string', required: false },
-  status: { 
-    type: 'string', 
-    required: true, 
+  status: {
+    type: 'string',
+    required: true,
     enum: ['active', 'ended', 'archived'],
     default: 'active'
   },
-  messages: [{
-    message: { type: 'string', required: true },
-    sender: { 
-      type: 'string', 
-      required: true, 
-      enum: ['user', 'assistant'] 
-    },
-    timestamp: { type: 'number', required: true },
-    metadata: { type: 'object', required: false }
-  }],
+  messages: [
+    {
+      message: { type: 'string', required: true },
+      sender: {
+        type: 'string',
+        required: true,
+        enum: ['user', 'assistant']
+      },
+      timestamp: { type: 'number', required: true },
+      metadata: { type: 'object', required: false }
+    }
+  ],
   started_at: { type: 'date', required: true, default: Date.now },
   ended_at: { type: 'date', required: false },
   duration: { type: 'number', required: false }, // in seconds

@@ -1,13 +1,13 @@
 import type { Request, Response } from 'express';
-import { chatService } from '../services/chat.service.js';
+
 import { HttpStatus } from '../../common/enums/app.enum.js';
 import type { ChatEndWebhookDto, CreateChatSessionDto, ChatMessageDto } from '../dto/chat.dto.js';
+import { chatService } from '../services/chat.service.js';
 
 /**
  * Chat controller for handling chat-related operations
  */
 export class ChatController {
-
   /**
    * @swagger
    * /api/chat/end:
@@ -70,7 +70,7 @@ export class ChatController {
    *       500:
    *         description: Internal server error
    */
-  async endChatWebhook(req: Request, res: Response): Promise<void> {
+  async endChatSession(req: Request, res: Response): Promise<void> {
     try {
       const webhookData: ChatEndWebhookDto = req.body;
 
@@ -82,9 +82,7 @@ export class ChatController {
       });
 
       // Validate chat_id - reject 'unknown' or invalid UUIDs
-      if (!webhookData.chat_id || 
-          webhookData.chat_id === 'unknown' || 
-          webhookData.chat_id.length < 10) {
+      if (!webhookData.chat_id || webhookData.chat_id === 'unknown' || webhookData.chat_id.length < 10) {
         console.warn(`❌ Rejecting webhook with invalid chat_id: "${webhookData.chat_id}"`);
         res.status(HttpStatus.BAD_REQUEST).json({
           success: false,
@@ -98,7 +96,7 @@ export class ChatController {
 
       if (!result.success) {
         let statusCode = HttpStatus.BAD_REQUEST;
-        
+
         if (result.error?.includes('Internal server error')) {
           statusCode = HttpStatus.INTERNAL_SERVER_ERROR;
         }
@@ -140,7 +138,7 @@ export class ChatController {
    *       500:
    *         description: Internal server error
    */
-  async getUserSessions(req: Request, res: Response): Promise<void> {
+  async getUserChatSessions(req: Request, res: Response): Promise<void> {
     try {
       const { email } = req.params;
 
@@ -280,7 +278,7 @@ export class ChatController {
    *       500:
    *         description: Internal server error
    */
-  async getSession(req: Request, res: Response): Promise<void> {
+  async getChatSession(req: Request, res: Response): Promise<void> {
     try {
       const { chatId } = req.params;
 
